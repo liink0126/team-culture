@@ -41,7 +41,7 @@
             padding: 2.5rem;
             max-width: 900px; /* 데스크톱 최대 너비 유지 */
             width: 100%;
-            margin-top: 1rem; /* 상단 여백 추가 */
+            margin-top: 3rem; /* 상단 여백을 크게 확보하여 GitHub Header와 겹침 방지 */
         }
         
         /* Mobile adjustments */
@@ -54,7 +54,7 @@
                 border-radius: 0; /* 모바일에서 화면 꽉 차게 */
                 box-shadow: none;
                 padding: 1.5rem 1rem;
-                margin-top: 0;
+                margin-top: 1rem;
             }
             .title {
                 font-size: 2rem;
@@ -434,8 +434,13 @@
 
                 onAuthStateChanged(auth, async (user) => {
                     if (!user) {
+                        // Firebase 인증 오류 해결: 익명 인증을 우선 시도
+                        // Firebase 프로젝트 설정에서 'Authentication' -> 'Sign-in method' -> 'Anonymous'를 활성화해야 합니다.
                         if (initialAuthToken) {
-                            await signInWithCustomToken(auth, initialAuthToken);
+                            await signInWithCustomToken(auth, initialAuthToken).catch(async (e) => {
+                                console.warn("Custom token sign-in failed, falling back to anonymous:", e);
+                                await signInAnonymously(auth);
+                            });
                         } else {
                             await signInAnonymously(auth);
                         }
@@ -466,7 +471,8 @@
             const marketingEmailInput = document.getElementById('marketingEmailInput');
             const marketingConsentCheckbox = document.getElementById('marketingConsentCheckbox');
             const sendMarketingEmailButton = document.getElementById('sendMarketingEmailButton');
-            const marketingEmailMessage = document = document.getElementById('marketingEmailMessage');
+            // 'TypeError: Cannot set property document' 오류 수정
+            const marketingEmailMessage = document.getElementById('marketingEmailMessage');
             
             const radarCanvas = document.getElementById('radarChart');
             const resultCloseButton = document.getElementById('resultCloseButton');
@@ -666,13 +672,21 @@
             marketingEmailInput.addEventListener('input', checkMarketingConsent);
             marketingConsentCheckbox.addEventListener('change', checkMarketingConsent);
             
-            // EmailJS 전송 및 Firestore 저장 로직
+            // Enter key press on email input
+            marketingEmailInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !sendMarketingEmailButton.disabled) {
+                    e.preventDefault();
+                    sendMarketingEmailButton.click();
+                }
+            });
+
+            // Firestore 저장 및 결과 보기 로직
             sendMarketingEmailButton.addEventListener('click', async () => {
                 const email = marketingEmailInput.value;
                 const isConsented = marketingConsentCheckbox.checked;
 
                 if (!sendMarketingEmailButton.disabled) {
-                    sendMarketingEmailButton.textContent = '전송 중...';
+                    sendMarketingEmailButton.textContent = '저장 중...';
                     sendMarketingEmailButton.disabled = true;
 
                     try {
@@ -691,7 +705,7 @@
                         renderChart(finalResults.averageScores);
 
                     } catch (e) {
-                        console.error("Error saving to Firestore: ", e);
+                        console.error("Error saving marketing consent to Firestore: ", e);
                         marketingEmailMessage.textContent = '저장에 실패했습니다. 다시 시도해 주세요.';
                         marketingEmailMessage.classList.remove('hidden');
                         marketingEmailMessage.style.color = '#dc3545';
