@@ -138,7 +138,20 @@
 
         /* Chart Styles */
         .chart-container { width: 100%; max-width: 350px; height: 350px; margin: 1rem auto; }
-        .chart-details { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; }
+        .chart-details {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: grid;
+            grid-template-columns: 1fr; /* 1 column on mobile */
+            gap: 0.75rem;
+        }
+        @media (min-width: 500px) { /* 2 columns on sm screens and up */
+            .chart-details {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
         .detail-item { display: flex; align-items: center; gap: 0.75rem; font-size: 0.95rem; font-weight: 500; }
         .detail-color-box { width: 0.75rem; height: 0.75rem; border-radius: 0.25rem; flex-shrink: 0; }
         
@@ -277,6 +290,7 @@
                         <div><label for="email" class="block text-sm font-medium text-gray-700 mb-1">이메일*</label><input type="email" id="email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#d83968] focus:border-[#d83968]" required></div>
                     </div>
                     <div><label for="requests" class="block text-sm font-medium text-gray-700 mb-1">기타 요청사항</label><textarea id="requests" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#d83968] focus:border-[#d83968]"></textarea></div>
+                    <div id="contact-form-error" class="text-center text-red-600 hidden mt-2"></div>
                     <div class="flex flex-col sm:flex-row gap-4 pt-4">
                         <button type="button" class="w-full bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-400 transition" onclick="showScreen('screen-2')">뒤로</button>
                         <button type="submit" class="w-full bg-[#d83968] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#c1325c] transition">제출하기</button>
@@ -316,7 +330,7 @@
             <div class="flex justify-center">
                  <button id="sendMarketingEmailButton" class="action-button w-full mt-6" disabled>동의하고 결과 받기</button>
             </div>
-            <div id="marketingEmailMessage" class="mt-2 text-center text-green-600 hidden"></div>
+            <div id="marketingEmailMessage" class="mt-2 text-center text-red-500 hidden"></div>
         </div>
     </div>
 
@@ -376,7 +390,7 @@
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.appId;
 
-        let db, auth;
+        let db, auth, userId;
         let finalResults = {};
         let myRadarChart = null;
 
@@ -388,10 +402,13 @@
                 auth = getAuth(app);
                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                 if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
+                    const userCredential = await signInWithCustomToken(auth, initialAuthToken);
+                    userId = userCredential.user.uid;
                 } else {
-                    await signInAnonymously(auth);
+                    const userCredential = await signInAnonymously(auth);
+                    userId = userCredential.user.uid;
                 }
+                console.log("Authenticated with userId:", userId);
             } catch (error) {
                 console.error("Firebase initialization or authentication failed:", error);
             }
@@ -888,7 +905,7 @@
                         companySize: companySizeSelect.value,
                         industryType: industryTypeSelect.value,
                         averageScores: calculateAverages(),
-                        userId: auth.currentUser?.uid || 'anonymous',
+                        userId: userId,
                         timestamp: new Date().toISOString()
                     };
                     emailConsentOverlay.classList.add('visible');
@@ -905,7 +922,12 @@
             marketingConsentCheckbox.addEventListener('change', checkMarketingConsent);
 
             sendMarketingEmailButton.addEventListener('click', async () => {
-                if (sendMarketingEmailButton.disabled || !db) return;
+                if (sendMarketingEmailButton.disabled || !db || !userId) {
+                    const msg = document.getElementById('marketingEmailMessage');
+                    msg.textContent = '인증 정보가 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.';
+                    msg.classList.remove('hidden');
+                    return;
+                }
 
                 sendMarketingEmailButton.textContent = '저장 중...';
                 sendMarketingEmailButton.disabled = true;
@@ -917,7 +939,7 @@
                         consented_to_marketing: marketingConsentCheckbox.checked,
                         timestamp: serverTimestamp()
                     };
-                    await addDoc(collection(db, `/artifacts/${appId}/public/data/survey_results`), docData);
+                    await addDoc(collection(db, `/artifacts/${appId}/users/${userId}/survey_results`), docData);
                     
                     emailConsentOverlay.classList.remove('visible');
                     resultOverlay.classList.add('visible');
@@ -926,7 +948,9 @@
 
                 } catch(e) {
                     console.error("Error saving to Firestore: ", e);
-                    alert('저장에 실패했습니다. Firebase 설정을 확인해주세요.');
+                    const msg = document.getElementById('marketingEmailMessage');
+                    msg.textContent = '오류: 저장을 실패했습니다. 잠시 후 다시 시도해주세요.';
+                    msg.classList.remove('hidden');
                     sendMarketingEmailButton.textContent = '동의하고 결과 받기';
                     sendMarketingEmailButton.disabled = false;
                 }
@@ -947,8 +971,12 @@
             // Contact Form Submission
             document.getElementById('contact-form').addEventListener('submit', async function(e) {
                 e.preventDefault();
-                if (!db) {
-                    alert('데이터베이스 연결에 실패했습니다. Firebase 설정을 확인해주세요.');
+                const errorEl = document.getElementById('contact-form-error');
+                errorEl.classList.add('hidden');
+
+                if (!db || !userId) {
+                    errorEl.textContent = '인증 정보가 올바르지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.';
+                    errorEl.classList.remove('hidden');
                     return;
                 }
 
@@ -968,18 +996,16 @@
                 };
                 
                 try {
-                    await addDoc(collection(db, `/artifacts/${appId}/public/data/contact_inquiries`), contactInfo);
+                    await addDoc(collection(db, `/artifacts/${appId}/users/${userId}/contact_inquiries`), contactInfo);
                     showScreen('screen-4');
                 } catch (error) {
                     console.error("Error writing document: ", error);
-                    alert("제출에 실패했습니다. 다시 시도해주세요.");
+                    errorEl.textContent = '제출에 실패했습니다. 잠시 후 다시 시도해주세요.';
+                    errorEl.classList.remove('hidden');
                 }
             });
         });
     </script>
 </body>
 </html>
-
-
-
 
