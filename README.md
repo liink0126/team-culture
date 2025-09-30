@@ -14,7 +14,6 @@
         /* ********** GitHub Pages 충돌 방지 및 전체 화면 설정 CSS ********** */
         
         /* 1. GitHub Pages의 Header, Footer 및 기타 불필요한 테마 요소를 강제로 숨깁니다. */
-        /* .site-header, .site-footer 등 테마가 삽입하는 요소를 숨깁니다. */
         .site-header, .site-footer, .view-on-github { display: none !important; }
         
         /* 2. body와 html이 화면 전체를 덮도록 설정하고, 기본 마진을 제거합니다. */
@@ -31,13 +30,13 @@
 
         /* 3. 본문 컨테이너를 화면 중앙에 배치하고 전체를 덮도록 설정합니다. */
         body {
-            /* GitHub Pages Header가 삽입되더라도 본문이 영향을 덜 받도록 flex-start 대신 center 사용 */
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* 상단에서 시작하도록 변경 */
             min-height: 100vh;
             padding: 2rem 1rem;
             box-sizing: border-box; /* 패딩이 전체 너비에 포함되도록 설정 */
+            padding-top: 50px; /* **추가: 상단 여백을 충분히 확보하여 첫 질문 텍스트가 보이지 않는 문제 해결** */
         }
         
         /* Custom Colors and Base Styles */
@@ -60,7 +59,6 @@
             padding: 2.5rem;
             max-width: 900px;
             width: 100%;
-            /* 추가: GitHub Header를 위한 상단 여백 확보 (혹시 모를 충돌 대비) */
             margin-top: 0; 
             margin-bottom: 0; 
         }
@@ -191,7 +189,7 @@
             border-radius: 1.5rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             position: relative;
-            max-width: 650px; /* 차트 확대를 위해 Max-width 증가 */
+            max-width: 650px; 
             width: 90%;
             transform: scale(0.95);
             transition: transform 0.3s ease-in-out;
@@ -225,14 +223,14 @@
         .likert-guide {
             text-align: center;
             flex: 1;
-            padding: 0 0.2rem; /* 가이드 텍스트 간격 조절 */
+            padding: 0 0.2rem; 
         }
         
         .chart-container {
             width: 100%;
-            max-width: 450px; /* 차트의 최대 크기 설정 */
+            max-width: 450px; 
             height: 450px;
-            margin: 2rem auto; /* 중앙 정렬 */
+            margin: 2rem auto; 
         }
 
         .chart-details {
@@ -430,7 +428,7 @@
                 onAuthStateChanged(auth, async (user) => {
                     if (!user) {
                         try {
-                            // 커스텀 토큰 미스매치 오류 방지: 익명 인증을 먼저 시도하여 사용자 세션을 확보
+                            // 익명 인증을 통해 사용자 세션을 확보
                             await signInAnonymously(auth);
                         } catch (error) {
                             console.error("Firebase Auth Error (Check Console Settings!):", error);
