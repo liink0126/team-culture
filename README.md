@@ -28,9 +28,14 @@
             color: var(--text-color);
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* 상단에서 시작하도록 변경 */
+            align-items: flex-start; 
             min-height: 100vh;
             padding: 2rem 1rem;
+            /* GitHub Pages Header 문제를 완화하기 위해 margin-top을 0으로 설정 */
+            margin-top: 0;
+            margin-left: 0;
+            margin-right: 0;
+            width: 100%; /* 너비 꽉 채우기 */
         }
 
         /* Container and Layout for Full Screen */
@@ -42,6 +47,7 @@
             max-width: 900px; /* 데스크톱 최대 너비 유지 */
             width: 100%;
             margin-top: 3rem; /* 상단 여백을 크게 확보하여 GitHub Header와 겹침 방지 */
+            margin-bottom: 2rem;
         }
         
         /* Mobile adjustments */
