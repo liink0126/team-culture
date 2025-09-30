@@ -87,21 +87,14 @@
             flex-direction: column;
             gap: 2rem;
         }
-        .category-group {
+        .question-group-wrapper {
             padding-bottom: 2rem;
+            border-bottom: 1px solid var(--light-gray); /* 질문 간의 시각적 구분 */
         }
-        .category-group:not(:last-child) {
-            border-bottom: 1px solid var(--light-gray);
+        .question-group-wrapper:last-child {
+             border-bottom: none;
         }
-        .category-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--text-color);
-            margin-bottom: 1.5rem;
-        }
-        .question-group {
-            margin-bottom: 2rem;
-        }
+
         .question-label {
             font-weight: 600;
             margin-bottom: 1rem;
@@ -423,7 +416,7 @@
         let db;
         let auth;
         let finalResults = {};
-
+        
         // Initialize Firebase and set up a listener for authentication state changes
         const setupFirebase = async () => {
             try {
@@ -435,7 +428,6 @@
                 onAuthStateChanged(auth, async (user) => {
                     if (!user) {
                         // Firebase 인증 오류 해결: 익명 인증을 우선 시도
-                        // Firebase 프로젝트 설정에서 'Authentication' -> 'Sign-in method' -> 'Anonymous'를 활성화해야 합니다.
                         if (initialAuthToken) {
                             await signInWithCustomToken(auth, initialAuthToken).catch(async (e) => {
                                 console.warn("Custom token sign-in failed, falling back to anonymous:", e);
@@ -452,6 +444,39 @@
         };
 
         setupFirebase();
+
+        // **원래의 15가지 세부 질문을 포함하는 데이터 구조를 다시 사용**
+        const categories = {
+            "Commitment": [
+                "나는 우리 팀의 업무 목표를 명확하게 알고 있다.",
+                "나는 우리 팀의 업무가 나에게 의미 있고 보람 있다고 느낀다."
+            ],
+            "Communication": [
+                "우리 팀은 누구나 자유롭게 의견을 제시할 수 있는 분위기이다.",
+                "나의 의견이 팀의 의사결정에 반영된다고 느낀다.",
+                "나는 동료들과의 자유로운 대화 속에서 업무에 대한 아이디어를 얻는다."
+            ],
+            "Collaboration": [
+                "나는 동료들의 업무 진행 상황을 잘 알고 있다.",
+                "동료들은 나의 업무에 적극적으로 도움을 준다.",
+                "우리 팀은 협업과 업무 지원이 원활하게 이루어진다."
+            ],
+            "Process": [
+                "우리 팀은 체계적인 계획에 따라 업무를 수행한다.",
+                "나의 업무에는 모호하거나 낭비적인 요소가 거의 없다.",
+                "우리 팀은 역할과 책임(R&R)이 명확하게 배분되어 있다."
+            ],
+            "Trust": [
+                "우리 팀은 실수에 대해 공정하게 판단하며 저평가하지 않는다.",
+                "나는 우리 팀에서 우려나 이의를 자유롭게 제기할 수 있다고 느낀다."
+            ],
+            "Growth": [
+                "동료들은 나의 업무 개선을 위한 피드백을 제공한다.",
+                "나는 업무를 통해 지속적으로 성장하고 있다고 느낀다."
+            ]
+        };
+        const labels = Object.keys(categories); // Commitment, Communication, ... (6개 항목)
+        const likertLabels = ["매우 그렇지 않다", "그렇지 않다", "보통이다", "그렇다", "매우 그렇다"];
 
         
         // Main logic to handle form and data submission
@@ -471,48 +496,14 @@
             const marketingEmailInput = document.getElementById('marketingEmailInput');
             const marketingConsentCheckbox = document.getElementById('marketingConsentCheckbox');
             const sendMarketingEmailButton = document.getElementById('sendMarketingEmailButton');
-            // 'TypeError: Cannot set property document' 오류 수정
             const marketingEmailMessage = document.getElementById('marketingEmailMessage');
             
             const radarCanvas = document.getElementById('radarChart');
             const resultCloseButton = document.getElementById('resultCloseButton');
             
-            let questionScores = {};
+            let questionScores = {}; // 15개 질문의 점수를 저장
             let companyInfo = {};
             
-
-            const categories = {
-                "Commitment": [
-                    "나는 우리 팀의 업무 목표를 명확하게 알고 있다.",
-                    "나는 우리 팀의 업무가 나에게 의미 있고 보람 있다고 느낀다."
-                ],
-                "Communication": [
-                    "우리 팀은 누구나 자유롭게 의견을 제시할 수 있는 분위기이다.",
-                    "나의 의견이 팀의 의사결정에 반영된다고 느낀다.",
-                    "나는 동료들과의 자유로운 대화 속에서 업무에 대한 아이디어를 얻는다."
-                ],
-                "Collaboration": [
-                    "나는 동료들의 업무 진행 상황을 잘 알고 있다.",
-                    "동료들은 나의 업무에 적극적으로 도움을 준다.",
-                    "우리 팀은 협업과 업무 지원이 원활하게 이루어진다."
-                ],
-                "Process": [
-                    "우리 팀은 체계적인 계획에 따라 업무를 수행한다.",
-                    "나의 업무에는 모호하거나 낭비적인 요소가 거의 없다.",
-                    "우리 팀은 역할과 책임(R&R)이 명확하게 배분되어 있다."
-                ],
-                "Trust": [
-                    "우리 팀은 실수에 대해 공정하게 판단하며 저평가하지 않는다.",
-                    "나는 우리 팀에서 우려나 이의를 자유롭게 제기할 수 있다고 느낀다."
-                ],
-                "Growth": [
-                    "동료들은 나의 업무 개선을 위한 피드백을 제공한다.",
-                    "나는 업무를 통해 지속적으로 성장하고 있다고 느낀다."
-                ]
-            };
-            const labels = Object.keys(categories);
-            const likertLabels = ["매우 그렇지 않다", "그렇지 않다", "보통이다", "그렇다", "매우 그렇다"];
-
             // Start screen logic
             startSurveyButton.addEventListener('click', async () => {
                 companyInfo = {
@@ -522,21 +513,9 @@
                 
                 startScreen.classList.add('hidden');
                 surveySection.classList.remove('hidden');
-
-                // Save initial company info to Firestore
-                try {
-                    await addDoc(collection(db, `/artifacts/${appId}/public/data/surveys`), {
-                        ...companyInfo,
-                        userId: auth.currentUser.uid,
-                        timestamp: serverTimestamp()
-                    });
-                    console.log("Initial survey data saved to Firestore.");
-                } catch (e) {
-                    console.error("Error adding document: ", e);
-                }
             });
 
-            // Initialize all question scores
+            // Initialize all question scores (15 items)
             Object.keys(categories).forEach(category => {
                 categories[category].forEach((question, index) => {
                     const questionId = `${category}-${index}`;
@@ -544,9 +523,12 @@
                 });
             });
 
-            // Check if all questions are answered
+            // Check if all questions are answered (15 items)
             function allQuestionsAnswered() {
-                return Object.values(questionScores).every(score => score > 0);
+                // 15개 질문 모두 응답했는지 확인
+                const totalQuestions = Object.values(categories).flat().length;
+                const answeredQuestions = Object.values(questionScores).filter(score => score > 0).length;
+                return answeredQuestions === totalQuestions;
             }
 
             // Update button state
@@ -559,44 +541,38 @@
                     showChartButton.textContent = "모든 질문에 응답해 주세요";
                 }
             }
-
-            // Calculate the average score for each category
+            
+            // Calculate the average score for each category (6 categories from 15 questions)
             function calculateAverages() {
                 const averageScores = {};
                 labels.forEach(label => {
-                    const questions = categories[label];
+                    const questionsInCat = categories[label];
                     let sum = 0;
                     let count = 0;
-                    questions.forEach((q, index) => {
+                    questionsInCat.forEach((q, index) => {
                         const score = questionScores[`${label}-${index}`];
                         if (score > 0) {
                             sum += score;
                             count++;
                         }
                     });
+                    // 평균을 계산하고, 해당 항목의 질문이 하나도 없으면 0으로 처리
                     averageScores[label] = count > 0 ? sum / count : 0;
                 });
                 return averageScores;
             }
 
-            // Create input fields for each question
-            Object.keys(categories).forEach(category => {
-                const categoryGroup = document.createElement('div');
-                categoryGroup.className = 'category-group';
-                
-                const categoryTitle = document.createElement('h2');
-                categoryTitle.className = 'category-title';
-                categoryTitle.textContent = category;
-                categoryGroup.appendChild(categoryTitle);
 
+            // Create input fields for each question (15 items total, NO CATEGORY HEADINGS)
+            Object.keys(categories).forEach(category => {
                 categories[category].forEach((question, index) => {
-                    const questionId = `${category}-${index}`;
+                    const questionId = `${category}-${index}`; // Unique ID for score tracking
                     const questionGroup = document.createElement('div');
-                    questionGroup.className = 'question-group';
+                    questionGroup.className = 'question-group-wrapper'; // 질문 그룹 래퍼로 사용
                     
                     const labelElem = document.createElement('label');
                     labelElem.className = 'question-label';
-                    labelElem.textContent = question;
+                    labelElem.textContent = question; // 세부 질문 텍스트
                     questionGroup.appendChild(labelElem);
 
                     const likertScaleContainer = document.createElement('div');
@@ -632,20 +608,23 @@
                     likertScaleContainer.appendChild(likertGuideContainer);
                     questionGroup.appendChild(likertScaleContainer);
                     
-                    categoryGroup.appendChild(questionGroup);
+                    inputFieldsContainer.appendChild(questionGroup);
                 });
-                
-                inputFieldsContainer.appendChild(categoryGroup);
             });
+
 
             // Show chart logic
             showChartButton.addEventListener('click', () => {
                 if (allQuestionsAnswered()) {
+                    const averageScores = calculateAverages();
+                    
                     finalResults = {
-                        companySize: companySizeSelect.value,
-                        industryType: industryTypeSelect.value,
-                        questionScores: questionScores,
-                        averageScores: calculateAverages(),
+                        companySize: companyInfo.companySize,
+                        industryType: companyInfo.industryType,
+                        // 15개 개별 질문 점수 (저장을 위해 남겨둠)
+                        rawScores: questionScores,
+                        // 6개 항목 평균 점수
+                        averageScores: averageScores, 
                     };
                     
                     surveySection.classList.add('hidden');
@@ -680,7 +659,7 @@
                 }
             });
 
-            // Firestore 저장 및 결과 보기 로직
+            // Firestore 저장 및 결과 보기 로직 (이메일 주소와 설문 결과 통합 저장)
             sendMarketingEmailButton.addEventListener('click', async () => {
                 const email = marketingEmailInput.value;
                 const isConsented = marketingConsentCheckbox.checked;
@@ -690,10 +669,15 @@
                     sendMarketingEmailButton.disabled = true;
 
                     try {
-                        // Firestore에 마케팅 동의 데이터 저장
+                        // Firestore에 마케팅 동의 데이터와 설문 결과를 통합하여 저장
                         await addDoc(collection(db, `/artifacts/${appId}/public/data/marketing_consents`), {
                             userEmail: email,
                             consented_to_marketing: isConsented,
+                            companySize: finalResults.companySize,
+                            industryType: finalResults.industryType,
+                            results: finalResults.averageScores, // 6개 항목 평균 점수 저장
+                            raw_scores: finalResults.rawScores, // 15개 개별 점수 (분석용)
+                            userId: auth.currentUser.uid,
                             timestamp: serverTimestamp()
                         });
                         
@@ -702,11 +686,11 @@
                         emailConsentOverlay.classList.add('hidden');
                         resultOverlay.classList.remove('hidden');
                         resultOverlay.classList.add('visible');
-                        renderChart(finalResults.averageScores);
+                        renderChart(finalResults.averageScores); // 평균 점수로 차트 렌더링
 
                     } catch (e) {
-                        console.error("Error saving marketing consent to Firestore: ", e);
-                        marketingEmailMessage.textContent = '저장에 실패했습니다. 다시 시도해 주세요.';
+                        console.error("Error saving marketing consent and results to Firestore: ", e);
+                        marketingEmailMessage.textContent = '저장에 실패했습니다. 다시 시도해 주세요. (Firebase 인증/규칙 확인 필요)';
                         marketingEmailMessage.classList.remove('hidden');
                         marketingEmailMessage.style.color = '#dc3545';
                         sendMarketingEmailButton.disabled = false;
