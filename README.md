@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>팀 진단 설문</title>
-    <!-- 모든 CDN 링크를 head 태그 안에 명확하게 배치하여 본문 상단 노출 문제 해결 -->
+    <!-- 모든 CDN 링크를 head 태그 안에 명확하게 배치 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -26,27 +26,32 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--background-color);
             color: var(--text-color);
+            /* 화면에 꽉 채우기 위한 설정 */
             display: flex;
             justify-content: center;
             align-items: flex-start; 
             min-height: 100vh;
             padding: 2rem 1rem;
-            /* GitHub Pages Header 문제를 완화하기 위해 margin-top을 0으로 설정 */
-            margin-top: 0;
-            margin-left: 0;
-            margin-right: 0;
-            width: 100%; /* 너비 꽉 채우기 */
+            width: 100%; 
+            box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+            
+            /* GitHub Header 문제 해결을 위한 CSS 트릭 */
+            /* 상단에 불필요한 공간을 제거하고 설문지 본문을 최상단에서 시작 */
+            margin: 0; 
+            padding-top: 50px; /* GitHub Pages header를 밀어내는 최소 여백 확보 */
+            
         }
 
-        /* Container and Layout for Full Screen */
+        /* Container: 설문지 본문 컨테이너 */
         .container {
             background-color: var(--surface-color);
             border-radius: 1.5rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             padding: 2.5rem;
-            max-width: 900px; /* 데스크톱 최대 너비 유지 */
+            max-width: 900px; 
             width: 100%;
-            margin-top: 3rem; /* 상단 여백을 크게 확보하여 GitHub Header와 겹침 방지 */
+            /* body의 padding-top을 이용해 상단 여백 관리 */
+            margin-top: -30px; /* Header 영역을 덮기 위한 조정 */
             margin-bottom: 2rem;
         }
         
@@ -55,12 +60,13 @@
             body {
                 padding: 1rem 0.5rem;
                 align-items: flex-start;
+                padding-top: 30px; /* 모바일 환경 상단 여백 조정 */
             }
             .container {
-                border-radius: 0; /* 모바일에서 화면 꽉 차게 */
+                border-radius: 0; 
                 box-shadow: none;
                 padding: 1.5rem 1rem;
-                margin-top: 1rem;
+                margin-top: 0; 
             }
             .title {
                 font-size: 2rem;
