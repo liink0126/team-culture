@@ -35,11 +35,9 @@
             width: 100%; 
             box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
             
-            /* GitHub Header 문제 해결을 위한 CSS 트릭 */
-            /* 상단에 불필요한 공간을 제거하고 설문지 본문을 최상단에서 시작 */
+            /* GitHub Pages Header 문제 해결을 위해 상단 여백 제거 및 설문지 시작점 조정 */
             margin: 0; 
-            padding-top: 50px; /* GitHub Pages header를 밀어내는 최소 여백 확보 */
-            
+            padding-top: 2rem; 
         }
 
         /* Container: 설문지 본문 컨테이너 */
@@ -51,7 +49,7 @@
             max-width: 900px; 
             width: 100%;
             /* body의 padding-top을 이용해 상단 여백 관리 */
-            margin-top: -30px; /* Header 영역을 덮기 위한 조정 */
+            margin-top: 0; 
             margin-bottom: 2rem;
         }
         
@@ -60,7 +58,7 @@
             body {
                 padding: 1rem 0.5rem;
                 align-items: flex-start;
-                padding-top: 30px; /* 모바일 환경 상단 여백 조정 */
+                padding-top: 1rem;
             }
             .container {
                 border-radius: 0; 
