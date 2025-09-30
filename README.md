@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -430,11 +429,8 @@
                 onAuthStateChanged(auth, async (user) => {
                     if (!user) {
                         try {
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
+                            // 커스텀 토큰 미스매치 오류 방지: 익명 인증을 먼저 시도하여 사용자 세션을 확보
+                            await signInAnonymously(auth);
                         } catch (error) {
                             console.error("Firebase Auth Error (Check Console Settings!):", error);
                         }
