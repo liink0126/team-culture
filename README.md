@@ -113,6 +113,7 @@
             font-size: 0.8rem; 
             color: var(--text-muted-color); 
             margin-top: 0.75rem;
+            text-align: center;
         }
         .likert-guide {
             text-align: center;
