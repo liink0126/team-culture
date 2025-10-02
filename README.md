@@ -272,7 +272,7 @@
                     <!-- Problem categories and items will be injected here -->
                 </div>
                 <div class="mt-10 flex flex-col-reverse sm:flex-row gap-4 justify-center">
-                    <button id="backToResultButton" class="w-full sm:w-auto bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-400 transition">이전으로</button>
+                    <button id="backToResultButton" class="w-full sm:w-auto bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-400 transition">이전으로</button>
                     <button class="action-button w-full sm:w-auto" onclick="showRecommendation()" id="show-result-btn" disabled>맞춤 솔루션 확인하기</button>
                 </div>
             </div>
@@ -288,7 +288,7 @@
                     <h3 class="font-bold text-lg text-gray-800 mb-2">더 자세한 내용이 궁금하신가요?</h3>
                     <p class="text-gray-600 mb-5">아래 버튼을 눌러 문의를 남겨주시면<br>전문 컨설턴트가 상세한 프로그램 내용과 일정을 안내해 드립니다.</p>
                     <div class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-                        <button class="w-full whitespace-nowrap bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-400 transition" onclick="showScreen('screen-1', 1)">진단 다시하기</button>
+                        <button class="w-full whitespace-nowrap bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-400 transition" onclick="location.reload()">진단 다시하기</button>
                         <button class="w-full whitespace-nowrap bg-[#d83968] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#c1325c] transition" onclick="showScreen('screen-3')">전문가에게 문의하기</button>
                     </div>
                 </div>
@@ -670,7 +670,7 @@
             for (const [categoryKey, problems] of Object.entries(PROBLEMS)) {
                 let categoryHtml = `
                     <div>
-                        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-gray-100 pb-3">${CATEGORY_NAMES[categoryKey]}</h2>
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 pb-3">${CATEGORY_NAMES[categoryKey]}</h2>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 `;
                 problems.forEach(problem => {
@@ -873,6 +873,8 @@
             window.showScreen = showScreen; // Make it globally accessible for inline onclick
             window.showRecommendation = showRecommendation;
 
+            const backToResultButton = document.getElementById('backToResultButton');
+
             // Survey Start
             companySizeSelect.addEventListener('change', checkStartConditions);
             industryTypeSelect.addEventListener('change', checkStartConditions);
@@ -912,6 +914,13 @@
             
             resultCloseButton.addEventListener('click', () => resultOverlay.classList.remove('visible'));
             
+             // Back to Result from Recommender
+            backToResultButton.addEventListener('click', () => {
+                recommenderContainer.classList.add('hidden');
+                surveyContainer.classList.add('hidden');
+                resultOverlay.classList.add('visible');
+            });
+
             // Contact Form Submission
             document.getElementById('contact-form').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -936,4 +945,5 @@
     </script>
 </body>
 </html>
+"
 
