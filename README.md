@@ -135,11 +135,14 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6);
             display: flex; justify-content: center; align-items: center; z-index: 1000;
             opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            overflow-y: auto;
+            padding: 2rem 0;
         }
         .modal-overlay.visible { opacity: 1; visibility: visible; }
         .modal-content {
             background-color: var(--surface-color); padding: 2.5rem; border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             position: relative; max-width: 800px; width: 90%; transform: scale(0.95); transition: transform 0.3s ease-in-out;
+             margin: auto;
         }
         .modal-overlay.visible .modal-content { transform: scale(1); }
         .modal-close-button {
@@ -268,8 +271,9 @@
                 <div id="problem-categories" class="space-y-8 mt-10">
                     <!-- Problem categories and items will be injected here -->
                 </div>
-                <div class="mt-10 flex justify-center">
-                    <button class="action-button" onclick="showRecommendation()" id="show-result-btn" disabled>맞춤 솔루션 확인하기</button>
+                <div class="mt-10 flex flex-col-reverse sm:flex-row gap-4 justify-center">
+                    <button id="backToResultButton" class="w-full sm:w-auto bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-400 transition">이전으로</button>
+                    <button class="action-button w-full sm:w-auto" onclick="showRecommendation()" id="show-result-btn" disabled>맞춤 솔루션 확인하기</button>
                 </div>
             </div>
             
@@ -284,7 +288,7 @@
                     <h3 class="font-bold text-lg text-gray-800 mb-2">더 자세한 내용이 궁금하신가요?</h3>
                     <p class="text-gray-600 mb-5">아래 버튼을 눌러 문의를 남겨주시면<br>전문 컨설턴트가 상세한 프로그램 내용과 일정을 안내해 드립니다.</p>
                     <div class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-                        <button class="w-full whitespace-nowrap bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-400 transition" onclick="location.reload()">진단 다시하기</button>
+                        <button class="w-full whitespace-nowrap bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-400 transition" onclick="showScreen('screen-1', 1)">진단 다시하기</button>
                         <button class="w-full whitespace-nowrap bg-[#d83968] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#c1325c] transition" onclick="showScreen('screen-3')">전문가에게 문의하기</button>
                     </div>
                 </div>
@@ -327,26 +331,29 @@
                 <h2 class="title text-3xl">팀 역량 진단 결과</h2>
                 <p class="subtitle mt-2">우리 팀의 현재 역량 수준을 한눈에 확인하세요.</p>
             </div>
-            <div class="md:grid md:grid-cols-2 md:gap-8">
-                <div>
+            <div>
+                <div class="flex flex-col items-center">
                     <div class="chart-container">
                         <canvas id="radarChart"></canvas>
                     </div>
-                     <div class="my-4 flex justify-center space-x-4 text-sm text-gray-600 border p-2 rounded-lg bg-slate-50">
+                     <div class="my-4 flex justify-center space-x-4 text-sm text-gray-600 border p-2 rounded-lg bg-slate-50 w-full max-w-md">
                         <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>우수 (4.0 이상)</div>
                         <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-gray-500 mr-2"></span>보통 (3.0-3.9)</div>
                         <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>개선 필요 (3.0 미만)</div>
                     </div>
-                     <div class="chart-details">
+                     <div class="chart-details w-full max-w-md">
                         <!-- Detail items will be populated by JS -->
                      </div>
                 </div>
-                <div class="mt-8 md:mt-0 flex flex-col justify-center">
-                    <div id="result-interpretation" class="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                <div class="mt-8 flex flex-col items-center">
+                    <div id="result-interpretation" class="bg-slate-50 p-6 rounded-lg border border-slate-200 w-full max-w-lg">
                          <p class="text-base text-slate-500 mb-2 font-semibold">종합 진단</p>
                          <p id="interpretation-text" class="text-lg text-slate-800 leading-relaxed"></p>
                     </div>
-                    <button id="goToRecommenderButton" class="action-button w-full mt-6">맞춤 솔루션 추천받기 &rarr;</button>
+                    <div class="mt-6 flex flex-col sm:flex-row gap-4 w-full max-w-lg">
+                        <button onclick="location.reload()" class="w-full bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-400 transition">진단 다시하기</button>
+                        <button id="goToRecommenderButton" class="action-button w-full !mt-0">맞춤 솔루션 추천받기 &rarr;</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -357,30 +364,43 @@
         const surveyCategories = {
             "Commitment": [
                 "나는 우리 팀의 업무 목표를 명확하게 알고 있다.",
-                "나는 우리 팀의 업무가 나에게 의미 있고 보람 있다고 느낀다."
+                "나는 일에서 의미와 보람을 느낀다.",
+                "우리 팀원들은 팀의 일에 헌신하고 있다.",
+                "나는 우리 팀에 소속되어 기여하는 것에 자부심을 느낀다."
             ],
             "Communication": [
-                "우리 팀은 누구나 자유롭게 의견을 제시할 수 있는 분위기이다.",
-                "나의 의견이 팀의 의사결정에 반영된다고 느낀다.",
-                "나는 동료들과의 자유로운 대화 속에서 업무에 대한 아이디어를 얻는다."
+                "우리 팀은 자유롭게 의견을 잘 낸다.",
+                "업무에 관한 의사 결정에 나의 의견이 반영된다.",
+                "동료들과의 자유로운 대화 속에서 업무에 대한 영감을 얻을 때가 있다.",
+                "우리 팀의 의사결정은 전반적으로 합리적이다."
             ],
             "Collaboration": [
-                "나는 동료들의 업무 진행 상황을 잘 알고 있다.",
-                "동료들은 나의 업무에 적극적으로 도움을 준다.",
-                "우리 팀은 협업과 업무 지원이 원활하게 이루어진다."
+                "나는 현재 동료들의 업무 진척현황을 구체적으로 알고 있다.",
+                "동료들이 나의 업무에 도움을 잘 준다.",
+                "팀 차원의 업무 지원과 협업이 잘 이루어진다."
             ],
             "Process": [
-                "우리 팀은 체계적인 계획에 따라 업무를 수행한다.",
-                "나의 업무에는 모호하거나 낭비적인 요소가 거의 없다.",
-                "우리 팀은 역할과 책임(R&R)이 명확하게 배분되어 있다."
+                "우리 팀은 체계적인 업무계획에 따라 일한다.",
+                "나의 업무 중 모호하거나 낭비적인 요소가 거의 없다.",
+                "우리 팀은 R&R 배분이 잘 되고 있다."
             ],
             "Trust": [
-                "우리 팀은 실수에 대해 공정하게 판단하며 저평가하지 않는다.",
-                "나는 우리 팀에서 우려나 이의를 자유롭게 제기할 수 있다고 느낀다."
+                "우리 팀은 환경 변화에 따라 업무 방식이나 과업의 목표를 적절히 조정한다.",
+                "우리 팀은 이례적인 실수로 나를 저평가하지 않는다.",
+                "우리 팀은 우려사항이나 이의를 제기하는 것에 불이익을 주지 않는다.",
+                "나에게 권한이 잘 위임된다."
             ],
             "Growth": [
-                "동료들은 나의 업무 개선을 위한 피드백을 제공한다.",
-                "나는 업무를 통해 지속적으로 성장하고 있다고 느낀다."
+                "팀원들이 나의 업무개선을 위한 피드백을 제공한다.",
+                "나는 일을 통해 꾸준히 성장하고 있다고 생각한다.",
+                "우리 팀은 꾸준히 업무를 개선해 나간다."
+            ],
+            "Leadership": [
+                "우리 팀 리더(팀장, 파트장 등)는 도전적으로 일하며 성과를 창출한다.",
+                "우리 팀 리더(팀장, 파트장 등)는 제 때 필요한 의사결정을 적절하게 내려준다.",
+                "우리 팀 리더(팀장, 파트장 등)는 업무 점검 회의(예: 주간업무회의)를 효과적으로 진행한다.",
+                "우리 팀 리더(팀장, 파트장 등)는 업무지시 및 피드백이 구체적이다.",
+                "우리 팀 리더(팀장, 파트장 등)는 중장기 관점을 가지고 체계적으로 일한다."
             ]
         };
         
@@ -425,7 +445,7 @@
              leader_perf: { title: "성장중심 성과관리 리더십", url: "https://liink.co.kr/education/leadership.php?ptype=view&prdcode=2404020020&catcode=12000000", description: "일방적 평가를 넘어, 구성원의 성장을 지원하고 동기를 부여하는 성과관리 방법을 배웁니다.", case_title: "K 게임회사 '리더십' 코칭 프로그램", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 연말 성과평가가 형식적인 절차로 전락했고, 핵심 인재들의 불만이 높았습니다.<br><strong class='text-[#d83968]'>[To-Be]</strong> 상시적인 성과관리 방식으로 전환하여, 자발적인 동기부여를 이끌어내고 핵심 인재의 이탈률을 낮췄습니다." },
              leader_oneonone: { title: "원온원 리더십", url: "https://liink.co.kr/education/leadership.php?ptype=view&prdcode=2404020021&catcode=12000000", description: "구성원과 신뢰를 쌓고 성장을 지원하는 1:1 미팅의 구체적인 스킬과 노하우를 학습합니다.", case_title: "L 스타트업 '리더 그룹' 원온원 스킬 강화", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 1:1 면담이 업무 현황 체크에 그치는 등 형식적으로 운영되었습니다.<br><strong class='text-[#d83968]'>[To-Be]</strong> 구체적인 스킬과 질문법을 학습하여, 팀원들의 숨은 고민을 해결하고 잠재력을 이끌어내는 시간으로 만들었습니다."},
              leader_conflict: { title: "갈등관리 리더십", url: "https://liink.co.kr/education/leadership.php?ptype=view&prdcode=2404020022&catcode=12000000", description: "팀 내외부의 갈등 상황을 지혜롭게 해결하고 건설적인 관계로 전환하는 방법을 배웁니다.", case_title: "M 제조기업 '생산-영업' 갈등 중재", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 생산 부서와 영업 부서 간의 해묵은 갈등으로 인해 프로젝트 진행이 비효율적이었습니다.<br><strong class='text-[#d83968]'>[To-Be]</strong> 리더들이 갈등의 근본 원인을 진단하고 해결 방안을 모색하여, 갈등을 '성장의 기회'로 전환했습니다." },
-             default: { title: "팀 시너지 워크숍", url: "https://liink.co.kr/", description: "팀의 소통과 협업에 문제가 있을 때, 신뢰를 바탕으로 팀워크를 강화하고 공동의 목표를 향해 나아가는 워크숍입니다.", case_title: "O사 '신규팀 빌딩' 워크숍", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 신규 TF팀이 서먹한 분위기 속에서 소통이 단절되고 시너지가 나지 않았습니다.<br><strong class='text-[#d83968]'>[To-Be]</strong> 워크숍을 통해 서로의 강점과 업무 스타일을 이해하고 신뢰를 구축하여, 단기간 내에 강력한 원팀(One-Team)으로 거듭났습니다." }
+             default: { title: "팀 시너지 워크숍", url: "https://liink.co.kr/education/leadership.php", description: "팀의 소통과 협업에 문제가 있을 때, 신뢰를 바탕으로 팀워크를 강화하고 공동의 목표를 향해 나아가는 워크숍입니다.", case_title: "O사 '신규팀 빌딩' 워크숍", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 신규 TF팀이 서먹한 분위기 속에서 소통이 단절되고 시너지가 나지 않았습니다.<br><strong class='text-[#d83968]'>[To-Be]</strong> 워크숍을 통해 서로의 강점과 업무 스타일을 이해하고 신뢰를 구축하여, 단기간 내에 강력한 원팀(One-Team)으로 거듭났습니다." }
         };
         
         const RECOMMENDATION_LOGIC = {
@@ -447,12 +467,13 @@
         };
 
         const SURVEY_TO_PROBLEM_MAP = {
-            Commitment: ['no_vision'],
+            Commitment: ['no_vision', 'poor_motivation'],
             Communication: ['inefficient_meetings', 'dominant_speakers', 'passive_team'],
             Collaboration: ['silos', 'conflict'],
-            Process: ['slow_execution', 'bad_performance_mgmt'],
-            Trust: ['conflict', 'feedback_issues', 'horizontal_culture'],
-            Growth: ['poor_motivation', 'one_on_one_issues', 'socio_feedback']
+            Process: ['slow_execution', 'bad_performance_mgmt', 'leader_micromanagement'],
+            Trust: ['conflict', 'feedback_issues', 'horizontal_culture', 'leader_micromanagement', 'one_on_one_issues'],
+            Growth: ['poor_motivation', 'one_on_one_issues', 'socio_feedback'],
+            Leadership: ['poor_motivation', 'bad_performance_mgmt', 'one_on_one_issues', 'leader_micromanagement']
         };
 
         // --- DOM Elements ---
@@ -547,18 +568,40 @@
         
         function calculateAverages() {
             const averageScores = {};
+            const leadershipScores = { sum: 0, count: 0 };
+
             Object.keys(surveyCategories).forEach(label => {
                 const questions = surveyCategories[label];
                 let sum = 0, count = 0;
                 questions.forEach((q, index) => {
-                    const score = questionScores[`${label}-${index}`];
+                    const questionId = `${label}-${index}`;
+                    const score = questionScores[questionId];
                     if (score > 0) {
                         sum += score;
                         count++;
                     }
                 });
+
+                if (label === 'Leadership') {
+                    leadershipScores.sum = sum;
+                    leadershipScores.count = count;
+                }
+
                 averageScores[label] = count > 0 ? parseFloat((sum / count).toFixed(1)) : 0;
             });
+
+            // Adjust Leadership score based on R&R and Delegation scores
+            const rrScore = questionScores['Process-2'];
+            const delegationScore = questionScores['Trust-3'];
+
+            // Add these scores to the leadership calculation to reflect their impact
+            const adjustedLeadershipSum = leadershipScores.sum + rrScore + delegationScore;
+            const adjustedLeadershipCount = leadershipScores.count + 2;
+
+            if (adjustedLeadershipCount > 0) {
+                 averageScores['Leadership'] = parseFloat((adjustedLeadershipSum / adjustedLeadershipCount).toFixed(1));
+            }
+
             return averageScores;
         }
 
@@ -769,6 +812,9 @@
                 .map(([category]) => category);
             
             let insights = [];
+             if (lowScoreCategories.includes('Leadership')) {
+                 insights.push("팀의 성과를 창출하고 구성원의 성장을 이끌어내는 <strong class='text-black'>'리더십 역량'</strong>에 대한 점검이 필요해 보입니다.");
+            }
             if (lowScoreCategories.includes('Communication') || lowScoreCategories.includes('Collaboration')) {
                  insights.push("팀원들 간의 <strong class='text-black'>'소통과 협업'</strong> 방식에 개선이 필요해 보입니다.");
             }
@@ -776,7 +822,7 @@
                 insights.push("실패에 대한 두려움 없이 솔직한 의견을 나눌 수 있는 <strong class='text-black'>'심리적 안정감'</strong> 조성이 시급합니다.");
             }
             if (lowScoreCategories.includes('Growth') || lowScoreCategories.includes('Commitment')) {
-                insights.push("구성원들의 <strong class='text-black'>'성장과 동기부여'</strong>를 위한 리더십과 명확한 목표 공유가 중요합니다.");
+                insights.push("구성원들의 <strong class='text-black'>'성장과 동기부여'</strong>를 위한 명확한 목표 공유가 중요합니다.");
             }
              if (lowScoreCategories.includes('Process')) {
                 insights.push("명확한 역할과 책임(R&R) 설정과 효율적인 <strong class='text-black'>'업무 프로세스'</strong> 정립이 필요합니다.");
