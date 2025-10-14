@@ -317,7 +317,7 @@
                     <!-- Problem categories and items will be injected here -->
                 </div>
                 <div class="mt-12 flex flex-col-reverse sm:flex-row gap-4 justify-center">
-                    <button id="backToResultButton" class="w-full sm:w-auto bg-gray-200 text-gray-800 font-bold py-4 px-8 rounded-lg hover:bg-gray-300 transition-all text-lg">이전으로</button>
+                    <button id="backToResultButton" class="w-full sm:w-auto bg-gray-200 text-gray-800 font-bold py-4 px-10 rounded-xl hover:bg-gray-300 transition-all text-lg">이전으로</button>
                     <button id="show-recommendation-btn" class="action-button w-full sm:w-auto !mt-0 text-lg" disabled>맞춤 솔루션 확인하기</button>
                 </div>
             </div>
@@ -401,7 +401,7 @@
                  </div>
             </div>
              <div class="mt-10 flex flex-col sm:flex-row gap-4 w-full max-w-lg mx-auto">
-                <button id="restart-button-3" class="w-full bg-gray-200 text-gray-800 font-bold py-4 px-4 rounded-lg hover:bg-gray-300 transition text-base">진단 다시하기</button>
+                <button id="restart-button-3" class="w-full bg-gray-200 text-gray-800 font-bold py-4 px-10 rounded-xl hover:bg-gray-300 transition text-base">진단 다시하기</button>
                 <button id="goToRecommenderButton" class="action-button w-full !mt-0 text-base">맞춤 솔루션 추천받기 &rarr;</button>
             </div>
         </div>
