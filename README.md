@@ -359,6 +359,15 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Make SDK functions available to the main script
+        window.firebaseSDK = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, collection, addDoc, setLogLevel };
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const App = {
@@ -453,19 +462,58 @@
                     finalResults: {},
                     myRadarChart: null,
                     currentScreen: 'screen-1',
+                    surveyDocId: null,
+                },
+
+                // --- FIREBASE INSTANCES ---
+                firebase: {
+                    app: null,
+                    auth: null,
+                    db: null,
+                    userId: null,
+                    appId: 'default-app-id',
                 },
 
                 // --- DOM ELEMENTS CACHE ---
                 elements: {},
 
                 // --- INITIALIZATION ---
-                init() {
+                async init() {
                     this.cacheDomElements();
+                    await this.firebaseInit();
                     this.bindEvents();
                     this.render.surveyQuestions();
                     this.render.problemCheckboxes();
                     this.utils.updateProgressBar(1);
                 },
+
+                async firebaseInit() {
+                    try {
+                        if (typeof __firebase_config === 'undefined' || typeof window.firebaseSDK === 'undefined') {
+                            console.warn("Firebase config or SDK not found. Running in offline mode.");
+                            return;
+                        }
+                        const firebaseConfig = JSON.parse(__firebase_config);
+                        this.firebase.app = window.firebaseSDK.initializeApp(firebaseConfig);
+                        this.firebase.auth = window.firebaseSDK.getAuth(this.firebase.app);
+                        this.firebase.db = window.firebaseSDK.getFirestore(this.firebase.app);
+                        window.firebaseSDK.setLogLevel('debug');
+
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await window.firebaseSDK.signInWithCustomToken(this.firebase.auth, __initial_auth_token);
+                        } else {
+                            await window.firebaseSDK.signInAnonymously(this.firebase.auth);
+                        }
+
+                        this.firebase.userId = this.firebase.auth.currentUser?.uid;
+                        this.firebase.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+                        console.log("Firebase initialized and user authenticated.", this.firebase.userId);
+                    } catch (error) {
+                        console.error("Firebase initialization failed:", error);
+                    }
+                },
+
 
                 cacheDomElements() {
                     this.elements = {
@@ -555,13 +603,39 @@
                         }
                     },
 
-                    onShowResult() {
+                    async onShowResult() {
                         if (this.utils.allQuestionsAnswered()) {
                             this.state.finalResults = {
                                 companySize: this.elements.companySizeSelect.value,
                                 industryType: this.elements.industryTypeSelect.value,
                                 averageScores: this.utils.calculateAverages(),
                             };
+                            
+                            // --- Data saving logic moved here ---
+                            const detailedSurveyData = {
+                                userId: this.firebase.userId,
+                                createdAt: new Date().toISOString(),
+                                companySize: this.state.finalResults.companySize,
+                                industryType: this.state.finalResults.industryType,
+                                averageScores: this.state.finalResults.averageScores,
+                                rawScores: this.state.questionScores,
+                            };
+                            const docId = await this.utils.saveSurveyData(detailedSurveyData, 'surveyResults');
+                            if (docId) {
+                                this.state.surveyDocId = docId;
+                            }
+
+                            const analyticsData = {
+                                createdAt: detailedSurveyData.createdAt,
+                                companySize: detailedSurveyData.companySize,
+                                industryType: detailedSurveyData.industryType,
+                            };
+                            for (const [key, value] of Object.entries(this.state.finalResults.averageScores)) {
+                                analyticsData[`${key.toLowerCase()}_avg`] = value;
+                            }
+                            await this.utils.saveSurveyData(analyticsData, 'surveyAnalytics');
+
+
                             this.render.resultChart(this.state.finalResults.averageScores);
                             this.elements.interpretationText.innerHTML = this.utils.getRecommendationReason(this.state.finalResults.averageScores);
                             this.utils.toggleModal(true);
@@ -575,6 +649,7 @@
                         this.utils.showScreen('screen-1', 1);
                         this.utils.preselectProblemsBasedOnSurvey(this.state.finalResults.averageScores);
                     },
+
 
                     onBackToResult() {
                         this.elements.recommenderContainer.classList.add('hidden');
@@ -591,21 +666,29 @@
                         this.utils.showScreen('screen-2', 2);
                     },
 
-                    onContactFormSubmit(e) {
+                    async onContactFormSubmit(e) {
                         e.preventDefault();
                         const selectedProblems = this.utils.getSelectedProblems();
-                        const contactInfo = {
+                        const recommendations = this.utils.getRecommendations(selectedProblems);
+                        
+                        const submissionData = {
+                            userId: this.firebase.userId,
+                            surveyDocId: this.state.surveyDocId, // Link to the original survey data
+                            createdAt: new Date().toISOString(),
                             company: this.elements.contactForm.querySelector('#company').value,
                             name: this.elements.contactForm.querySelector('#name').value,
                             phone: this.elements.contactForm.querySelector('#phone').value,
                             email: this.elements.contactForm.querySelector('#email').value,
                             requests: this.elements.contactForm.querySelector('#requests').value,
                             selectedProblems,
-                            recommendations: this.utils.getRecommendations(selectedProblems).map(key => this.config.programs[key].title),
-                            surveyResults: this.state.finalResults.averageScores,
+                            recommendations: recommendations.map(key => this.config.programs[key].title),
+                            surveyResults: this.state.finalResults.averageScores, 
                         };
-                        console.log("Contact form submitted:", contactInfo);
-                        // In a real application, you would send this data to a server here.
+                        
+                        console.log("Contact form submitted:", submissionData);
+
+                        await this.utils.saveSurveyData(submissionData, 'contactSubmissions');
+                        
                         this.utils.showScreen('screen-4');
                     }
                 },
@@ -833,6 +916,26 @@
                     getSelectedProblems() {
                          return Array.from(App.elements.problemCategoriesContainer.querySelectorAll('input[name="problems"]:checked')).map(cb => cb.value);
                     },
+
+                    async saveSurveyData(data, collectionName) {
+                        if (!App.firebase.db) {
+                            console.log("Offline mode: Data not saved.", { collection: collectionName, data });
+                            // Optionally, notify the user that data is not being saved
+                            return null;
+                        }
+                        try {
+                            const docRef = await window.firebaseSDK.addDoc(
+                                window.firebaseSDK.collection(App.firebase.db, `/artifacts/${App.firebase.appId}/public/data/${collectionName}`),
+                                data
+                            );
+                            console.log(`Document written with ID (${collectionName}): `, docRef.id);
+                            return docRef.id;
+                        } catch (e) {
+                            console.error(`Error adding document to ${collectionName}: `, e);
+                            return null;
+                        }
+                    },
+
 
                     getRecommendations(selectedProblems) {
                         const scores = {};
