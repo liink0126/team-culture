@@ -401,8 +401,8 @@
                  </div>
             </div>
              <div class="mt-10 flex flex-col sm:flex-row gap-4 w-full max-w-lg mx-auto">
-                <button id="restart-button-3" class="w-full bg-gray-200 text-gray-800 font-bold py-4 px-10 rounded-xl hover:bg-gray-300 transition text-base">진단 다시하기</button>
-                <button id="goToRecommenderButton" class="action-button w-full !mt-0 text-base">맞춤 솔루션 추천받기 &rarr;</button>
+                <button id="restart-button-3" class="w-full bg-gray-200 text-gray-800 font-bold py-4 px-10 rounded-xl hover:bg-gray-300 transition text-lg">진단 다시하기</button>
+                <button id="goToRecommenderButton" class="action-button w-full !mt-0">맞춤 솔루션 추천받기 &rarr;</button>
             </div>
         </div>
     </div>
@@ -699,7 +699,7 @@
                                 labels: Object.keys(scores),
                                 datasets: [{
                                     label: 'Team Performance', data: Object.values(scores), fill: true,
-                                    backgroundColor: 'rgba(209, 58, 105, 0.1)',
+                                    backgroundColor: 'rgba(209, 58, 105, 0.2)',
                                     borderColor: 'rgba(209, 58, 105, 1)',
                                     pointBackgroundColor: 'rgba(209, 58, 105, 1)',
                                     pointBorderColor: '#fff',
@@ -712,8 +712,8 @@
                                 elements: { line: { borderWidth: 2.5, tension: 0.2 } },
                                 scales: {
                                     r: {
-                                        angleLines: { color: 'rgba(0,0,0,0.08)' },
-                                        grid: { color: 'rgba(0,0,0,0.08)' },
+                                        angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                                        grid: { color: 'rgba(0, 0, 0, 0.1)' },
                                         pointLabels: {
                                             color: '#374151',
                                             font: { size: 14, weight: '700', family: "'Pretendard'" }
