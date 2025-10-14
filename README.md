@@ -359,15 +359,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // Make SDK functions available to the main script
-        window.firebaseSDK = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, collection, addDoc, setLogLevel };
-    </script>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const App = {
@@ -465,55 +456,17 @@
                     surveyDocId: null,
                 },
 
-                // --- FIREBASE INSTANCES ---
-                firebase: {
-                    app: null,
-                    auth: null,
-                    db: null,
-                    userId: null,
-                    appId: 'default-app-id',
-                },
-
                 // --- DOM ELEMENTS CACHE ---
                 elements: {},
 
                 // --- INITIALIZATION ---
-                async init() {
+                init() {
                     this.cacheDomElements();
-                    await this.firebaseInit();
                     this.bindEvents();
                     this.render.surveyQuestions();
                     this.render.problemCheckboxes();
                     this.utils.updateProgressBar(1);
                 },
-
-                async firebaseInit() {
-                    try {
-                        if (typeof __firebase_config === 'undefined' || typeof window.firebaseSDK === 'undefined') {
-                            console.warn("Firebase config or SDK not found. Running in offline mode.");
-                            return;
-                        }
-                        const firebaseConfig = JSON.parse(__firebase_config);
-                        this.firebase.app = window.firebaseSDK.initializeApp(firebaseConfig);
-                        this.firebase.auth = window.firebaseSDK.getAuth(this.firebase.app);
-                        this.firebase.db = window.firebaseSDK.getFirestore(this.firebase.app);
-                        window.firebaseSDK.setLogLevel('debug');
-
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await window.firebaseSDK.signInWithCustomToken(this.firebase.auth, __initial_auth_token);
-                        } else {
-                            await window.firebaseSDK.signInAnonymously(this.firebase.auth);
-                        }
-
-                        this.firebase.userId = this.firebase.auth.currentUser?.uid;
-                        this.firebase.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-                        console.log("Firebase initialized and user authenticated.", this.firebase.userId);
-                    } catch (error) {
-                        console.error("Firebase initialization failed:", error);
-                    }
-                },
-
 
                 cacheDomElements() {
                     this.elements = {
@@ -550,35 +503,21 @@
                 },
 
                 bindEvents() {
-                    // Start screen
                     this.elements.companySizeSelect.addEventListener('change', this.handlers.onStartConditionChange.bind(this));
                     this.elements.industryTypeSelect.addEventListener('change', this.handlers.onStartConditionChange.bind(this));
                     this.elements.startSurveyButton.addEventListener('click', this.handlers.onStartSurvey.bind(this));
-
-                    // Survey screen (Event Delegation)
                     this.elements.inputFieldsContainer.addEventListener('click', this.handlers.onLikertClick.bind(this));
                     this.elements.showResultButton.addEventListener('click', this.handlers.onShowResult.bind(this));
-
-                    // Result modal
                     this.elements.resultCloseButton.addEventListener('click', () => this.utils.toggleModal(false));
                     this.elements.goToRecommenderButton.addEventListener('click', this.handlers.onGoToRecommender.bind(this));
-
-                    // Recommender screen
                     this.elements.backToResultButton.addEventListener('click', this.handlers.onBackToResult.bind(this));
                     this.elements.problemCategoriesContainer.addEventListener('change', this.handlers.onProblemSelectionChange.bind(this));
                     this.elements.showRecommendationBtn.addEventListener('click', this.handlers.onShowRecommendation.bind(this));
-
-                    // Navigation buttons
                     this.elements.goToContactButton.addEventListener('click', () => this.utils.showScreen('screen-3'));
                     this.elements.backToRecsButton.addEventListener('click', () => this.utils.showScreen('screen-2', 2));
-
-                    // Restart buttons
                     this.elements.restartButtons.forEach(btn => btn.addEventListener('click', () => location.reload()));
-
-                    // Contact form
                     this.elements.contactForm.addEventListener('submit', this.handlers.onContactFormSubmit.bind(this));
                 },
-
 
                 // --- EVENT HANDLERS ---
                 handlers: {
@@ -611,30 +550,8 @@
                                 averageScores: this.utils.calculateAverages(),
                             };
                             
-                            // --- Data saving logic moved here ---
-                            const detailedSurveyData = {
-                                userId: this.firebase.userId,
-                                createdAt: new Date().toISOString(),
-                                companySize: this.state.finalResults.companySize,
-                                industryType: this.state.finalResults.industryType,
-                                averageScores: this.state.finalResults.averageScores,
-                                rawScores: this.state.questionScores,
-                            };
-                            const docId = await this.utils.saveSurveyData(detailedSurveyData, 'surveyResults');
-                            if (docId) {
-                                this.state.surveyDocId = docId;
-                            }
-
-                            const analyticsData = {
-                                createdAt: detailedSurveyData.createdAt,
-                                companySize: detailedSurveyData.companySize,
-                                industryType: detailedSurveyData.industryType,
-                            };
-                            for (const [key, value] of Object.entries(this.state.finalResults.averageScores)) {
-                                analyticsData[`${key.toLowerCase()}_avg`] = value;
-                            }
-                            await this.utils.saveSurveyData(analyticsData, 'surveyAnalytics');
-
+                            // Log data to console instead of saving
+                            console.log("Survey Results (Not Saved):", this.state.finalResults);
 
                             this.render.resultChart(this.state.finalResults.averageScores);
                             this.elements.interpretationText.innerHTML = this.utils.getRecommendationReason(this.state.finalResults.averageScores);
@@ -649,7 +566,6 @@
                         this.utils.showScreen('screen-1', 1);
                         this.utils.preselectProblemsBasedOnSurvey(this.state.finalResults.averageScores);
                     },
-
 
                     onBackToResult() {
                         this.elements.recommenderContainer.classList.add('hidden');
@@ -668,31 +584,20 @@
 
                     async onContactFormSubmit(e) {
                         e.preventDefault();
-                        const selectedProblems = this.utils.getSelectedProblems();
-                        const recommendations = this.utils.getRecommendations(selectedProblems);
-                        
                         const submissionData = {
-                            userId: this.firebase.userId,
-                            surveyDocId: this.state.surveyDocId, // Link to the original survey data
+                            surveyDocId: this.state.surveyDocId,
                             createdAt: new Date().toISOString(),
                             company: this.elements.contactForm.querySelector('#company').value,
                             name: this.elements.contactForm.querySelector('#name').value,
                             phone: this.elements.contactForm.querySelector('#phone').value,
                             email: this.elements.contactForm.querySelector('#email').value,
                             requests: this.elements.contactForm.querySelector('#requests').value,
-                            selectedProblems,
-                            recommendations: recommendations.map(key => this.config.programs[key].title),
-                            surveyResults: this.state.finalResults.averageScores, 
                         };
                         
-                        console.log("Contact form submitted:", submissionData);
-
-                        await this.utils.saveSurveyData(submissionData, 'contactSubmissions');
-                        
+                        console.log("Contact Form Submission (Not Saved):", submissionData);
                         this.utils.showScreen('screen-4');
                     }
                 },
-
 
                 // --- RENDER FUNCTIONS ---
                 render: {
@@ -703,7 +608,6 @@
                             questions.forEach((question, index) => {
                                 const questionId = `${category}-${index}`;
                                 App.state.questionScores[questionId] = 0;
-
                                 const questionGroup = document.createElement('div');
                                 questionGroup.className = 'question-group';
                                 questionGroup.innerHTML = `
@@ -715,8 +619,7 @@
                                         <div class="likert-guide-container w-full">
                                             ${["매우 그렇지 않다", "그렇지 않다", "보통이다", "그렇다", "매우 그렇다"].map(label => `<div class="likert-guide">${label}</div>`).join('')}
                                         </div>
-                                    </div>
-                                `;
+                                    </div>`;
                                 fragment.appendChild(questionGroup);
                                 questionCounter++;
                             });
@@ -735,28 +638,20 @@
                                             <label for="problem-${problem.id}" class="flex items-center text-center justify-center min-h-[80px] p-4 rounded-xl cursor-pointer transition-all duration-200 hover:bg-slate-50 hover:-translate-y-1">
                                                 <span class="font-medium text-gray-700">${problem.text}</span>
                                             </label>
-                                        </div>
-                                    `).join('')}
+                                        </div>`).join('')}
                                 </div>
-                            </div>
-                        `).join('');
+                            </div>`).join('');
                         App.elements.problemCategoriesContainer.innerHTML = html;
                     },
 
                     resultChart(scores) {
-                        if (App.state.myRadarChart) {
-                            App.state.myRadarChart.destroy();
-                        }
-                        
+                        if (App.state.myRadarChart) App.state.myRadarChart.destroy();
                         const detailsHtml = Object.keys(scores).map(label => {
                             const color = scores[label] < 3.0 ? '#ef4444' : (scores[label] >= 4.0 ? '#22c55e' : '#6b7280');
                             return `
                                 <div class="detail-item">
                                     <div class="detail-color-box" style="background-color: ${color};"></div>
-                                    <span>
-                                        <span class="font-bold">${label}:</span>
-                                        <span class="font-medium text-gray-700 ml-1">${scores[label].toFixed(1)}</span>
-                                    </span>
+                                    <span><span class="font-bold">${label}:</span> <span class="font-medium text-gray-700 ml-1">${scores[label].toFixed(1)}</span></span>
                                 </div>`;
                         }).join('');
                         App.elements.chartDetailsContainer.innerHTML = detailsHtml;
@@ -775,15 +670,7 @@
                             options: {
                                 maintainAspectRatio: false,
                                 elements: { line: { borderWidth: 3, tension: 0.2 } },
-                                scales: {
-                                    r: {
-                                        angleLines: { color: 'rgba(150, 150, 150, 0.2)' },
-                                        grid: { color: 'rgba(150, 150, 150, 0.2)' },
-                                        pointLabels: { color: 'var(--text-body-color)', font: { size: 14, weight: '600', family: "'Pretendard'" } },
-                                        min: 0, max: 5,
-                                        ticks: { stepSize: 1, backdropColor: 'transparent', color: 'var(--text-muted-color)' }
-                                    }
-                                },
+                                scales: { r: { min: 0, max: 5, ticks: { stepSize: 1 } } },
                                 plugins: { legend: { display: false } }
                             }
                         });
@@ -793,7 +680,6 @@
                         const selected = App.utils.getSelectedProblems();
                         const recommendedKeys = App.utils.getRecommendations(selected);
                         const reason = App.utils.getRecommendationReason(App.state.finalResults.averageScores, true);
-
                         const recommendationHtml = recommendedKeys.map((key, index) => {
                             const program = App.config.programs[key];
                             const isPrimary = index === 0;
@@ -812,7 +698,6 @@
                                     </div>
                                 </div>`;
                         }).join('');
-
                         App.elements.recommendationContent.innerHTML = `
                             <div class="bg-slate-50 p-6 rounded-lg border border-slate-200">
                                 <p class="text-base text-slate-500 mb-2 font-semibold">핵심 문제 진단</p>
@@ -824,15 +709,12 @@
                     }
                 },
 
-
                 // --- UTILITY & LOGIC FUNCTIONS ---
                 utils: {
-                    allQuestionsAnswered() {
-                        return Object.values(App.state.questionScores).every(score => score > 0);
-                    },
+                    allQuestionsAnswered: () => Object.values(App.state.questionScores).every(score => score > 0),
 
                     updateSurveyButtonState() {
-                        if (App.utils.allQuestionsAnswered()) {
+                        if (this.allQuestionsAnswered()) {
                             App.elements.showResultButton.disabled = false;
                             App.elements.showResultButton.textContent = "결과 분석하기";
                         }
@@ -840,48 +722,34 @@
                     
                     calculateAverages() {
                         const averageScores = {};
-                        const leadershipScores = { sum: 0, count: 0 };
-
                         Object.keys(App.config.surveyCategories).forEach(label => {
                             const questions = App.config.surveyCategories[label];
                             let sum = 0, count = 0;
                             questions.forEach((q, index) => {
                                 const score = App.state.questionScores[`${label}-${index}`];
-                                if (score > 0) {
-                                    sum += score;
-                                    count++;
-                                }
+                                if (score > 0) { sum += score; count++; }
                             });
-                            if (label === 'Leadership') {
-                                leadershipScores.sum = sum;
-                                leadershipScores.count = count;
-                            }
                             averageScores[label] = count > 0 ? parseFloat((sum / count).toFixed(1)) : 0;
                         });
-
-                        const rrScore = App.state.questionScores['Process-2'];
-                        const delegationScore = App.state.questionScores['Trust-3'];
-                        const adjustedLeadershipSum = leadershipScores.sum + rrScore + delegationScore;
-                        const adjustedLeadershipCount = leadershipScores.count + 2;
+                        const rrScore = App.state.questionScores['Process-2'] || 0;
+                        const delegationScore = App.state.questionScores['Trust-3'] || 0;
+                        const leadershipScores = Object.entries(App.state.questionScores).filter(([k]) => k.startsWith('Leadership'));
+                        const adjustedLeadershipSum = leadershipScores.reduce((acc, [, v]) => acc + v, 0) + rrScore + delegationScore;
+                        const adjustedLeadershipCount = leadershipScores.length + (rrScore > 0 ? 1 : 0) + (delegationScore > 0 ? 1 : 0);
                         if (adjustedLeadershipCount > 0) {
                              averageScores['Leadership'] = parseFloat((adjustedLeadershipSum / adjustedLeadershipCount).toFixed(1));
                         }
                         return averageScores;
                     },
 
-                    toggleModal(visible) {
-                        App.elements.resultOverlay.classList.toggle('visible', visible);
-                    },
+                    toggleModal: (visible) => App.elements.resultOverlay.classList.toggle('visible', visible),
                     
                     showScreen(screenId, step = null) {
                         document.getElementById(App.state.currentScreen)?.classList.remove('active');
                         document.getElementById(screenId).classList.add('active');
                         App.state.currentScreen = screenId;
-                        
-                        const isProgressVisible = !['screen-3', 'screen-4'].includes(screenId);
-                        App.elements.progressContainer.style.display = isProgressVisible ? 'block' : 'none';
-
-                        if (step) App.utils.updateProgressBar(step);
+                        App.elements.progressContainer.style.display = ['screen-3', 'screen-4'].includes(screenId) ? 'none' : 'block';
+                        if (step) this.updateProgressBar(step);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     },
                     
@@ -889,53 +757,25 @@
                         const fill = document.getElementById('progress-bar-fill');
                         const text = document.getElementById('progress-text');
                         const stepEl = document.getElementById('progress-step');
-                        const texts = ['문제점 확인', '솔루션 제안'];
-                        
                         stepEl.textContent = step;
                         fill.style.width = `${(step / 2) * 100}%`;
-                        text.textContent = texts[step - 1];
+                        text.textContent = ['문제점 확인', '솔루션 제안'][step - 1];
                     },
 
                     preselectProblemsBasedOnSurvey(scores) {
-                        const lowScoreThreshold = 3.0;
-                        let problemsToSelect = new Set();
-                        
+                        const problemsToSelect = new Set();
                         Object.entries(scores).forEach(([category, score]) => {
-                            if (score < lowScoreThreshold) {
+                            if (score < 3.0) {
                                 (App.config.surveyToProblemMap[category] || []).forEach(problemId => problemsToSelect.add(problemId));
                             }
                         });
-
                         App.elements.problemCategoriesContainer.querySelectorAll('input[name="problems"]').forEach(cb => {
                             cb.checked = problemsToSelect.has(cb.value);
                         });
-
                         App.elements.showRecommendationBtn.disabled = problemsToSelect.size === 0;
                     },
 
-                    getSelectedProblems() {
-                         return Array.from(App.elements.problemCategoriesContainer.querySelectorAll('input[name="problems"]:checked')).map(cb => cb.value);
-                    },
-
-                    async saveSurveyData(data, collectionName) {
-                        if (!App.firebase.db) {
-                            console.log("Offline mode: Data not saved.", { collection: collectionName, data });
-                            // Optionally, notify the user that data is not being saved
-                            return null;
-                        }
-                        try {
-                            const docRef = await window.firebaseSDK.addDoc(
-                                window.firebaseSDK.collection(App.firebase.db, `/artifacts/${App.firebase.appId}/public/data/${collectionName}`),
-                                data
-                            );
-                            console.log(`Document written with ID (${collectionName}): `, docRef.id);
-                            return docRef.id;
-                        } catch (e) {
-                            console.error(`Error adding document to ${collectionName}: `, e);
-                            return null;
-                        }
-                    },
-
+                    getSelectedProblems: () => Array.from(App.elements.problemCategoriesContainer.querySelectorAll('input[name="problems"]:checked')).map(cb => cb.value),
 
                     getRecommendations(selectedProblems) {
                         const scores = {};
@@ -947,7 +787,6 @@
                                 }
                             }
                         });
-
                         if (scores.ft_foundation_1day || scores.ft_foundation_2day || scores.ft_foundation_3day) {
                              if (selectedProblems.length === 1 && selectedProblems.includes('inefficient_meetings')) {
                                  delete scores.ft_foundation_2day; delete scores.ft_foundation_3day;
@@ -955,7 +794,6 @@
                                 delete scores.ft_foundation_1day;
                             }
                         }
-
                         const sortedPrograms = Object.entries(scores).sort(([, scoreA], [, scoreB]) => scoreB - scoreA);
                         let recommendations = sortedPrograms.slice(0, 2).map(([key]) => key);
                         recommendations = [...new Set(recommendations)];
@@ -963,18 +801,13 @@
                     },
 
                     getRecommendationReason(scores, isFinal = false) {
-                        const lowScoreThreshold = 3.0;
-                        const lowScoreCategories = Object.entries(scores)
-                            .filter(([, score]) => score < lowScoreThreshold)
-                            .map(([category]) => category);
-                        
+                        const lowScoreCategories = Object.entries(scores).filter(([, score]) => score < 3.0).map(([category]) => category);
                         let insights = [];
                         if (lowScoreCategories.includes('Leadership')) insights.push("팀의 성과를 창출하고 구성원의 성장을 이끌어내는 <strong class='text-black'>'리더십 역량'</strong>에 대한 점검이 필요해 보입니다.");
                         if (lowScoreCategories.includes('Communication') || lowScoreCategories.includes('Collaboration')) insights.push("팀원들 간의 <strong class='text-black'>'소통과 협업'</strong> 방식에 개선이 필요해 보입니다.");
                         if (lowScoreCategories.includes('Trust')) insights.push("실패에 대한 두려움 없이 솔직한 의견을 나눌 수 있는 <strong class='text-black'>'심리적 안정감'</strong> 조성이 시급합니다.");
                         if (lowScoreCategories.includes('Growth') || lowScoreCategories.includes('Commitment')) insights.push("구성원들의 <strong class='text-black'>'성장과 동기부여'</strong>를 위한 명확한 목표 공유가 중요합니다.");
                         if (lowScoreCategories.includes('Process')) insights.push("명확한 역할과 책임(R&R) 설정과 효율적인 <strong class='text-black'>'업무 프로세스'</strong> 정립이 필요합니다.");
-
                         if (insights.length === 0) return "팀의 전반적인 역량이 안정적입니다. 현재 상태를 유지하고 더욱 발전시키기 위한 방안을 모색해볼 수 있습니다.";
                         if (isFinal) return `진단 결과, ${insights.join(" 또한, ")} 이러한 문제들을 해결하기 위한 최적의 솔루션들을 아래에 제안합니다.`;
                         return insights.join(" ");
