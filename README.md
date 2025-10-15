@@ -95,17 +95,17 @@
             pointer-events: none;
         }
         
-        /* Survey Specific Styles */
+        /* Survey Specific Styles - UX IMPROVEMENT */
         .question-group {
-            margin-bottom: 2.5rem;
-            padding-bottom: 2.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
             border-bottom: 1px solid var(--border-color);
         }
         .question-group:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         .question-label {
             font-weight: 700;
-            margin-bottom: 1.5rem;
-            font-size: 1.2rem;
+            margin-bottom: 1.25rem;
+            font-size: 1.125rem;
             color: var(--text-heading-color);
             display: block;
             line-height: 1.5;
@@ -113,13 +113,14 @@
         .likert-scale {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
         .likert-button {
-            padding: 1rem 0; border-radius: 0.75rem; border: 2px solid var(--border-color);
+            padding: 0.75rem 0; 
+            border-radius: 0.75rem; border: 2px solid var(--border-color);
             background-color: var(--surface-color); font-weight: 700; cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            color: var(--text-muted-color); font-size: 1.125rem; text-align: center;
+            color: var(--text-muted-color); font-size: 1rem; text-align: center;
         }
         .likert-button:hover {
             background-color: #fff7fa;
@@ -136,10 +137,10 @@
         .likert-guide-container { 
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 0.75rem;
-            font-size: 0.875rem; 
+            gap: 0.5rem;
+            font-size: 0.8rem; 
             color: var(--text-muted-color); 
-            margin-top: 1rem;
+            margin-top: 0.75rem;
             text-align: center;
         }
 
@@ -171,8 +172,10 @@
             opacity: 0; visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
             overflow-y: auto;
-            padding: 3rem 1rem;
+            padding: 2rem 1rem;
             z-index: 50;
+            display: flex;
+            align-items: flex-start; /* Aligns modal to the top */
         }
         .modal-overlay.visible { opacity: 1; visibility: visible; }
         .modal-content {
@@ -327,8 +330,7 @@
                 <div id="problem-categories" class="space-y-10 mt-12">
                     <!-- Problem categories and items will be injected here -->
                 </div>
-                <div class="mt-12 flex flex-col-reverse sm:flex-row gap-4 justify-center">
-                    <button id="backToResultButton" class="w-full sm:w-auto bg-gray-200 text-gray-800 font-bold py-4 px-10 rounded-xl hover:bg-gray-300 transition-all text-lg">이전으로</button>
+                <div class="mt-12 flex justify-center">
                     <button id="show-recommendation-btn" class="action-button w-full sm:w-auto !mt-0 text-lg" disabled>맞춤 솔루션 확인하기</button>
                 </div>
             </div>
@@ -546,7 +548,6 @@
                         recommendationContent: document.getElementById('recommendation-content'),
                         contactForm: document.getElementById('contact-form'),
                         progressContainer: document.getElementById('progress-container'),
-                        backToResultButton: document.getElementById('backToResultButton'),
                         goToContactButton: document.getElementById('go-to-contact-button'),
                         backToRecsButton: document.getElementById('back-to-recs-button'),
                     };
@@ -560,14 +561,20 @@
                     this.elements.showResultButton.addEventListener('click', this.handlers.onShowResult.bind(this));
                     this.elements.resultCloseButton.addEventListener('click', () => this.utils.toggleModal(false));
                     this.elements.goToRecommenderButton.addEventListener('click', this.handlers.onGoToRecommender.bind(this));
-                    this.elements.backToResultButton.addEventListener('click', this.handlers.onBackToResult.bind(this));
-                    this.elements.problemCategoriesContainer.addEventListener('change', this.handlers.onProblemSelectionChange.bind(this));
+                    document.getElementById('problem-categories').addEventListener('click', (e) => {
+                         if(e.target.closest('label')) {
+                            setTimeout(() => this.handlers.onProblemSelectionChange(), 0);
+                         }
+                    });
                     this.elements.showRecommendationBtn.addEventListener('click', this.handlers.onShowRecommendation.bind(this));
                     this.elements.goToContactButton.addEventListener('click', () => this.utils.showScreen('screen-3'));
                     this.elements.backToRecsButton.addEventListener('click', () => this.utils.showScreen('screen-2', 2));
 
                     document.getElementById('restart-button-1')?.addEventListener('click', () => location.reload());
-                    document.getElementById('restart-button-2')?.addEventListener('click', () => location.reload());
+                    document.querySelector('a[onclick^="location.reload"]')?.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        location.reload();
+                    });
 
 
                     this.elements.contactForm.addEventListener('submit', this.handlers.onContactFormSubmit.bind(this));
@@ -619,8 +626,7 @@
                     },
 
                     onBackToResult() {
-                        this.elements.recommenderContainer.classList.add('hidden');
-                        this.utils.toggleModal(true);
+                         this.utils.showScreen('screen-1', 1); // Go back to problem selection
                     },
 
                     onProblemSelectionChange() {
@@ -716,6 +722,9 @@
                                 }]
                             },
                             options: {
+                                layout: {
+                                    padding: 15 // Prevents labels from being cut off
+                                },
                                 maintainAspectRatio: false,
                                 elements: { line: { borderWidth: 2.5, tension: 0.2 } },
                                 scales: {
