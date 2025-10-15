@@ -161,30 +161,41 @@
             cursor: not-allowed; box-shadow: none; transform: none;
         }
         
-        /* Modal Styles */
+        /* Modal Styles - ROOT CAUSE FIX */
         .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background-color: rgba(17, 24, 39, 0.6);
             backdrop-filter: blur(4px);
-            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
-            overflow-y: auto; /* Allow modal to scroll on small screens */
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            overflow-y: auto;
+            padding: 3rem 1rem;
+            z-index: 50;
         }
         .modal-overlay.visible { opacity: 1; visibility: visible; }
         .modal-content {
-            padding: 2rem 1.5rem;
-            max-width: 840px;
-            transform: scale(0.95) translateY(10px);
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            transform: scale(0.95);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        @media(min-width: 768px){ .modal-content { padding: 3rem; max-width: 680px; } } /* Adjusted max-width for single column */
-        .modal-overlay.visible .modal-content { transform: scale(1) translateY(0); }
+        @media(min-width: 640px){ .modal-content { padding: 2.5rem; } }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
         .modal-close-button:hover { color: var(--primary-color); transform: rotate(90deg); }
         
         /* Chart & Result Details Styles */
         .result-grid {
             display: flex;
             flex-direction: column; /* Stacks items vertically */
-            gap: 2.5rem;
-            margin-top: 2.5rem;
+            gap: 2rem;
+            margin-top: 2rem;
         }
         .chart-container { width: 100%; max-width: 320px; height: 320px; margin: 0 auto; }
         .chart-details {
@@ -332,9 +343,8 @@
                 <div class="bg-gray-100 p-8 rounded-xl mt-12 text-center border border-gray-200">
                     <h3 class="font-bold text-xl text-gray-800 mb-3">더 자세한 내용이 궁금하신가요?</h3>
                     <p class="text-gray-600 mb-6">아래 버튼을 눌러 문의를 남겨주시면<br>전문 컨설턴트가 상세한 프로그램 내용과 일정을 안내해 드립니다.</p>
-                    <div class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-                        <button id="restart-button-1" class="w-full whitespace-nowrap bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-400 transition">진단 다시하기</button>
-                        <button id="go-to-contact-button" class="w-full whitespace-nowrap bg-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-pink-700 transition">전문가에게 문의하기</button>
+                    <div class="flex justify-center max-w-lg mx-auto">
+                        <button id="go-to-contact-button" class="w-full sm:w-auto whitespace-nowrap bg-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-pink-700 transition">전문가에게 문의하기</button>
                     </div>
                 </div>
             </div>
@@ -366,18 +376,18 @@
                  </div>
                 <h2 class="text-3xl font-bold text-gray-800 mb-4">문의가 성공적으로 접수되었습니다.</h2>
                 <p class="text-lg text-gray-600 mb-8 max-w-md mx-auto">검토 후 24시간 이내에 담당자가 입력하신 연락처로 회신드리겠습니다. 감사합니다.</p>
-                <button id="restart-button-2" class="bg-gray-700 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-800 transition text-base">처음으로 돌아가기</button>
+                <a href="#" onclick="location.reload(); return false;" class="bg-gray-700 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-800 transition text-base">처음으로 돌아가기</a>
             </div>
         </div>
     </div>
     
     <!-- Modal: Final Result Popup -->
-    <div id="resultOverlay" class="modal-overlay fixed top-0 left-0 w-full h-full flex items-center justify-center p-4">
-        <div id="resultContent" class="modal-content bg-white rounded-2xl shadow-2xl w-full">
+    <div id="resultOverlay" class="modal-overlay">
+        <div id="resultContent" class="modal-content">
             <button id="resultCloseButton" class="modal-close-button absolute top-4 right-4 text-2xl transition-transform duration-300">&times;</button>
             <div class="header text-center">
-                <h2 class="title text-3xl">팀 역량 진단 결과</h2>
-                <p class="subtitle mt-2">우리 팀의 현재 역량 수준을 한눈에 확인하세요.</p>
+                <h2 class="title text-2xl sm:text-3xl">팀 역량 진단 결과</h2>
+                <p class="subtitle mt-2 text-base">우리 팀의 현재 역량 수준을 한눈에 확인하세요.</p>
             </div>
             <div class="result-grid">
                 <div class="flex flex-col items-center">
@@ -400,9 +410,8 @@
                     </div>
                  </div>
             </div>
-             <div class="mt-10 flex flex-col sm:flex-row gap-4 w-full max-w-lg mx-auto">
-                <button id="restart-button-3" class="w-full bg-gray-200 text-gray-800 font-bold py-4 px-10 rounded-xl hover:bg-gray-300 transition text-lg">진단 다시하기</button>
-                <button id="goToRecommenderButton" class="action-button w-full !mt-0">맞춤 솔루션 추천받기 &rarr;</button>
+             <div class="mt-8 flex justify-center w-full">
+                <button id="goToRecommenderButton" class="action-button !mt-0 text-base w-full max-w-xs">맞춤 솔루션 추천받기 &rarr;</button>
             </div>
         </div>
     </div>
@@ -540,11 +549,6 @@
                         backToResultButton: document.getElementById('backToResultButton'),
                         goToContactButton: document.getElementById('go-to-contact-button'),
                         backToRecsButton: document.getElementById('back-to-recs-button'),
-                        restartButtons: [
-                            document.getElementById('restart-button-1'),
-                            document.getElementById('restart-button-2'),
-                            document.getElementById('restart-button-3'),
-                        ]
                     };
                 },
 
@@ -561,7 +565,11 @@
                     this.elements.showRecommendationBtn.addEventListener('click', this.handlers.onShowRecommendation.bind(this));
                     this.elements.goToContactButton.addEventListener('click', () => this.utils.showScreen('screen-3'));
                     this.elements.backToRecsButton.addEventListener('click', () => this.utils.showScreen('screen-2', 2));
-                    this.elements.restartButtons.forEach(btn => btn.addEventListener('click', () => location.reload()));
+
+                    document.getElementById('restart-button-1')?.addEventListener('click', () => location.reload());
+                    document.getElementById('restart-button-2')?.addEventListener('click', () => location.reload());
+
+
                     this.elements.contactForm.addEventListener('submit', this.handlers.onContactFormSubmit.bind(this));
                 },
 
@@ -712,8 +720,8 @@
                                 elements: { line: { borderWidth: 2.5, tension: 0.2 } },
                                 scales: {
                                     r: {
-                                        angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
-                                        grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                                        angleLines: { color: 'rgba(0, 0, 0, 0.15)' },
+                                        grid: { color: 'rgba(0, 0, 0, 0.15)' },
                                         pointLabels: {
                                             color: '#374151',
                                             font: { size: 14, weight: '700', family: "'Pretendard'" }
@@ -847,7 +855,7 @@
                         if (scores.ft_foundation_1day || scores.ft_foundation_2day || scores.ft_foundation_3day) {
                              if (selectedProblems.length === 1 && selectedProblems.includes('inefficient_meetings')) {
                                  delete scores.ft_foundation_2day; delete scores.ft_foundation_3day;
-                            } else if(selectedProblems.length >= 2 && (selectedProblems.includes('inefficient_meetings') || selectedProblems.includes('passive_team') || selectedProblems.includes('dominant_speakers'))) {
+                            } else if(selectedProblems.length >= 2 && (selectedProblems.includes('inefficient_meetings') || selectedProblems.includes('passive_team') || selectedproblems.includes('dominant_speakers'))) {
                                 delete scores.ft_foundation_1day;
                             }
                         }
