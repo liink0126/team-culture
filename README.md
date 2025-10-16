@@ -342,43 +342,6 @@
                 <div id="recommendation-content" class="space-y-8 mt-12">
                     <!-- Recommendation will be injected here -->
                 </div>
-                <div class="bg-gray-100 p-8 rounded-xl mt-12 text-center border border-gray-200">
-                    <h3 class="font-bold text-xl text-gray-800 mb-3">더 자세한 내용이 궁금하신가요?</h3>
-                    <p class="text-gray-600 mb-6">아래 버튼을 눌러 문의를 남겨주시면<br>전문 컨설턴트가 상세한 프로그램 내용과 일정을 안내해 드립니다.</p>
-                    <div class="flex justify-center max-w-lg mx-auto">
-                        <button id="go-to-contact-button" class="w-full sm:w-auto whitespace-nowrap bg-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-pink-700 transition">전문가에게 문의하기</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Screen 3: Contact Form -->
-            <div id="screen-3" class="screen">
-                <h1 class="title text-center">문의 내용 남기기</h1>
-                <p class="subtitle text-center">담당자가 빠르게 확인 후 연락드리겠습니다.</p>
-                <form id="contact-form" class="space-y-6 mt-10 max-w-2xl mx-auto">
-                    <div class="grid sm:grid-cols-2 gap-6">
-                        <div><label for="company" class="block text-sm font-medium text-gray-700 mb-1">회사/단체명*</label><input type="text" id="company" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-1 focus:ring-pink-500 focus:border-pink-500 transition" required></div>
-                        <div><label for="name" class="block text-sm font-medium text-gray-700 mb-1">담당자 이름*</label><input type="text" id="name" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-1 focus:ring-pink-500 focus:border-pink-500 transition" required></div>
-                        <div><label for="phone" class="block text-sm font-medium text-gray-700 mb-1">연락처*</label><input type="tel" id="phone" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-1 focus:ring-pink-500 focus:border-pink-500 transition" required></div>
-                        <div><label for="email" class="block text-sm font-medium text-gray-700 mb-1">이메일*</label><input type="email" id="email" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-1 focus:ring-pink-500 focus:border-pink-500 transition" required></div>
-                    </div>
-                    <div><label for="requests" class="block text-sm font-medium text-gray-700 mb-1">기타 요청사항</label><textarea id="requests" rows="4" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-1 focus:ring-pink-500 focus:border-pink-500 transition"></textarea></div>
-                    <div id="contact-form-error" class="text-center text-red-600 hidden mt-2"></div>
-                    <div class="flex flex-col sm:flex-row gap-4 pt-4">
-                        <button type="button" id="back-to-recs-button" class="w-full bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition">뒤로</button>
-                        <button type="submit" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-700 transition">제출하기</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Screen 4: Completion -->
-            <div id="screen-4" class="screen text-center py-12">
-                 <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                 </div>
-                <h2 class="text-3xl font-bold text-gray-800 mb-4">문의가 성공적으로 접수되었습니다.</h2>
-                <p class="text-lg text-gray-600 mb-8 max-w-md mx-auto">검토 후 24시간 이내에 담당자가 입력하신 연락처로 회신드리겠습니다. 감사합니다.</p>
-                <a href="#" onclick="location.reload(); return false;" class="bg-gray-700 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-800 transition text-base">처음으로 돌아가기</a>
             </div>
         </div>
     </div>
@@ -423,6 +386,8 @@
             const App = {
                 // --- CONFIGURATION & CONSTANTS ---
                 config: {
+                    // ❗ 중요: Google Sheets 연동을 원하시면 안내서에 따라 생성된 URL을 여기에 붙여넣어 주세요.
+                    googleScriptUrl: 'https://script.google.com/macros/s/AKfycbw0jcsvitbsYPQd7E4_fbBYwN-VMWodUdJZZlg8IQMIPepJsJ22bFFwRQCNKPLGLBh8/exec',
                     surveyCategories: {
                         "Commitment": [
                             "나는 우리 팀의 업무 목표를 명확하게 알고 있다.", "나는 일에서 의미와 보람을 느낀다.",
@@ -546,10 +511,7 @@
                         problemCategoriesContainer: document.getElementById('problem-categories'),
                         showRecommendationBtn: document.getElementById('show-recommendation-btn'),
                         recommendationContent: document.getElementById('recommendation-content'),
-                        contactForm: document.getElementById('contact-form'),
                         progressContainer: document.getElementById('progress-container'),
-                        goToContactButton: document.getElementById('go-to-contact-button'),
-                        backToRecsButton: document.getElementById('back-to-recs-button'),
                     };
                 },
 
@@ -561,23 +523,10 @@
                     this.elements.showResultButton.addEventListener('click', this.handlers.onShowResult.bind(this));
                     this.elements.resultCloseButton.addEventListener('click', () => this.utils.toggleModal(false));
                     this.elements.goToRecommenderButton.addEventListener('click', this.handlers.onGoToRecommender.bind(this));
-                    document.getElementById('problem-categories').addEventListener('click', (e) => {
-                         if(e.target.closest('label')) {
-                            setTimeout(() => this.handlers.onProblemSelectionChange(), 0);
-                         }
-                    });
+                    
+                    this.elements.problemCategoriesContainer.addEventListener('change', this.handlers.onProblemSelectionChange.bind(this));
+
                     this.elements.showRecommendationBtn.addEventListener('click', this.handlers.onShowRecommendation.bind(this));
-                    this.elements.goToContactButton.addEventListener('click', () => this.utils.showScreen('screen-3'));
-                    this.elements.backToRecsButton.addEventListener('click', () => this.utils.showScreen('screen-2', 2));
-
-                    document.getElementById('restart-button-1')?.addEventListener('click', () => location.reload());
-                    document.querySelector('a[onclick^="location.reload"]')?.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        location.reload();
-                    });
-
-
-                    this.elements.contactForm.addEventListener('submit', this.handlers.onContactFormSubmit.bind(this));
                 },
 
                 // --- EVENT HANDLERS ---
@@ -603,14 +552,25 @@
                         }
                     },
 
-                    onShowResult() {
+                    async onShowResult() {
                         if (this.utils.allQuestionsAnswered()) {
                             this.state.finalResults = {
                                 companySize: this.elements.companySizeSelect.value,
                                 industryType: this.elements.industryTypeSelect.value,
                                 averageScores: this.utils.calculateAverages(),
                             };
-                            console.log("Survey Results:", this.state.finalResults);
+                            
+                            const analyticsData = {
+                                createdAt: new Date().toISOString(),
+                                companySize: this.state.finalResults.companySize,
+                                industryType: this.state.finalResults.industryType,
+                            };
+                            for (const [key, value] of Object.entries(this.state.finalResults.averageScores)) {
+                                analyticsData[key] = value;
+                            }
+                            
+                            await this.utils.saveSurveyData(analyticsData, 'surveyAnalytics');
+
                             this.render.resultChart(this.state.finalResults.averageScores);
                             this.elements.interpretationText.innerHTML = this.utils.getRecommendationReason(this.state.finalResults.averageScores);
                             this.utils.toggleModal(true);
@@ -625,10 +585,6 @@
                         this.utils.preselectProblemsBasedOnSurvey(this.state.finalResults.averageScores);
                     },
 
-                    onBackToResult() {
-                         this.utils.showScreen('screen-1', 1); // Go back to problem selection
-                    },
-
                     onProblemSelectionChange() {
                         const anyChecked = Array.from(this.elements.problemCategoriesContainer.querySelectorAll('input[name="problems"]')).some(c => c.checked);
                         this.elements.showRecommendationBtn.disabled = !anyChecked;
@@ -638,12 +594,6 @@
                         this.render.recommendations();
                         this.utils.showScreen('screen-2', 2);
                     },
-
-                    onContactFormSubmit(e) {
-                        e.preventDefault();
-                         console.log("Contact Form Submitted. Data not saved in this version.");
-                        this.utils.showScreen('screen-4');
-                    }
                 },
 
                 // --- RENDER FUNCTIONS ---
@@ -850,6 +800,49 @@
                     },
 
                     getSelectedProblems: () => Array.from(App.elements.problemCategoriesContainer.querySelectorAll('input[name="problems"]:checked')).map(cb => cb.value),
+                    
+                    async saveSurveyData(data, sheetName) {
+                        const GOOGLE_SCRIPT_URL = App.config.googleScriptUrl;
+                        if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                            console.warn("Google Apps Script URL is not set. Data will not be saved to Google Sheets.");
+                            return `local-${Date.now()}`;
+                        }
+                        
+                        const payload = { ...data, sheetName: sheetName };
+
+                        try {
+                           const response = await fetch(GOOGLE_SCRIPT_URL, {
+                                method: 'POST',
+                                redirect: "follow",
+                                headers: {
+                                    "Content-Type": "text/plain;charset=UTF-8",
+                                },
+                                body: JSON.stringify(payload)
+                            });
+                            
+                            if (!response.ok && response.type !== 'opaque') { 
+                                throw new Error(`Network response was not ok. Status: ${response.status}`);
+                            }
+                           
+                            if (response.type === 'opaque') {
+                                console.log(`Data sent to Google Sheet '${sheetName}' (opaque response).`);
+                                return `g-sheet-${Date.now()}`;
+                            }
+
+                            const result = await response.json();
+
+                            if (result.status === "success") {
+                                console.log(`Data successfully saved to Google Sheet '${sheetName}'.`);
+                                return `g-sheet-${Date.now()}`;
+                            } else {
+                                throw new Error(result.message);
+                            }
+                        } catch (e) {
+                            console.error(`Error sending data to Google Sheet '${sheetName}': `, e.message);
+                            alert(`Google Sheet 저장 오류: ${e.message}\n\n[문제 해결 가이드]\n1. Google Sheet의 시트 이름과 헤더가 안내서와 정확히 일치하는지 확인하세요.\n2. Apps Script를 수정한 경우, 반드시 '배포 관리 > 새 버전'으로 다시 배포했는지 확인하세요.\n3. Apps Script 배포 시 '액세스 권한'이 '모든 사용자'로 설정되었는지 확인하세요.`);
+                            return null;
+                        }
+                    },
 
                     getRecommendations(selectedProblems) {
                         const scores = {};
