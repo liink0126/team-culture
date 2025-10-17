@@ -146,10 +146,13 @@
 
         /* Main Action Button Style */
         .action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background-color: var(--primary-color); color: white; padding: 1rem 2.5rem; border-radius: 0.75rem; font-size: 1.125rem;
             font-weight: 700; border: none; cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(209, 58, 105, 0.2); margin-top: 2.5rem; align-self: center; width: 100%;
+            box-shadow: 0 4px 15px rgba(209, 58, 105, 0.2); margin-top: 2.5rem; width: 100%;
         }
         @media (min-width: 640px) { .action-button { width: auto; min-width: 280px; } }
         .action-button:hover {
@@ -316,10 +319,10 @@
             <div id="progress-container" class="mb-10">
                 <div class="flex justify-between items-center mb-2">
                     <span id="progress-text" class="text-base font-semibold text-pink-600">문제 진단</span>
-                    <span class="text-sm text-gray-500 font-medium"><span id="progress-step">1</span> / 2</span>
+                    <span class="text-sm text-gray-500 font-medium"><span id="progress-step">1</span> / 1</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2.5">
-                    <div id="progress-bar-fill" class="bg-pink-600 h-2.5 rounded-full" style="width: 50%;"></div>
+                    <div id="progress-bar-fill" class="bg-pink-600 h-2.5 rounded-full" style="width: 100%;"></div>
                 </div>
             </div>
 
@@ -386,7 +389,6 @@
             const App = {
                 // --- CONFIGURATION & CONSTANTS ---
                 config: {
-                    // ❗ 중요: Google Sheets 연동을 원하시면 안내서에 따라 생성된 URL을 여기에 붙여넣어 주세요.
                     googleScriptUrl: 'https://script.google.com/macros/s/AKfycbw0jcsvitbsYPQd7E4_fbBYwN-VMWodUdJZZlg8IQMIPepJsJ22bFFwRQCNKPLGLBh8/exec',
                     surveyCategories: {
                         "Commitment": [
@@ -553,7 +555,21 @@
                     },
 
                     async onShowResult() {
-                        if (this.utils.allQuestionsAnswered()) {
+                        if (!this.utils.allQuestionsAnswered()) return;
+
+                        const button = this.elements.showResultButton;
+                        const originalButtonText = button.innerHTML;
+
+                        try {
+                            button.disabled = true;
+                            button.innerHTML = `
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                분석 중...
+                            `;
+                            
                             this.state.finalResults = {
                                 companySize: this.elements.companySizeSelect.value,
                                 industryType: this.elements.industryTypeSelect.value,
@@ -574,6 +590,13 @@
                             this.render.resultChart(this.state.finalResults.averageScores);
                             this.elements.interpretationText.innerHTML = this.utils.getRecommendationReason(this.state.finalResults.averageScores);
                             this.utils.toggleModal(true);
+
+                        } catch (error) {
+                            console.error("Error in onShowResult:", error);
+                        } finally {
+                            // Always restore button after attempt
+                             button.disabled = false;
+                             button.innerHTML = originalButtonText;
                         }
                     },
                     
@@ -814,12 +837,10 @@
                            const response = await fetch(GOOGLE_SCRIPT_URL, {
                                 method: 'POST',
                                 redirect: "follow",
-                                headers: {
-                                    "Content-Type": "text/plain;charset=UTF-8",
-                                },
+                                headers: { "Content-Type": "text/plain;charset=UTF-8" },
                                 body: JSON.stringify(payload)
                             });
-                            
+
                             if (!response.ok && response.type !== 'opaque') { 
                                 throw new Error(`Network response was not ok. Status: ${response.status}`);
                             }
@@ -840,7 +861,7 @@
                         } catch (e) {
                             console.error(`Error sending data to Google Sheet '${sheetName}': `, e.message);
                             alert(`Google Sheet 저장 오류: ${e.message}\n\n[문제 해결 가이드]\n1. Google Sheet의 시트 이름과 헤더가 안내서와 정확히 일치하는지 확인하세요.\n2. Apps Script를 수정한 경우, 반드시 '배포 관리 > 새 버전'으로 다시 배포했는지 확인하세요.\n3. Apps Script 배포 시 '액세스 권한'이 '모든 사용자'로 설정되었는지 확인하세요.`);
-                            return null;
+                            throw e; // Re-throw error to be caught by caller
                         }
                     },
 
