@@ -3,262 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>liink | 조직 문제 진단 및 솔루션 추천 (Refactored)</title>
-    <!-- CDN Links for required libraries -->
+    <title>liink | 팀 역량 진단</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-    
-    <style>
-        /* Base Font and Layout Styles */
-        body {
-            font-family: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f8f9fc;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding: 2rem 1rem;
-            box-sizing: border-box;
-            word-break: keep-all;
-            overflow-wrap: break-word;
-        }
-
-        /* Custom Colors */
-        :root {
-            --primary-color: #d13a69;
-            --primary-hover-color: #b9325b;
-            --surface-color: #ffffff;
-            --text-heading-color: #1f2937;
-            --text-body-color: #374151;
-            --text-muted-color: #6b7280;
-            --border-color: #e5e7eb;
-            --background-color: #f8f9fc;
-        }
-        
-        /* Main Container */
-        .container-wrapper {
-            background-color: var(--surface-color);
-            border-radius: 1.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-            padding: 2rem;
-            max-width: 900px;
-            width: 100%;
-            border: 1px solid #f3f4f6;
-        }
-
-        @media (min-width: 768px) {
-            .container-wrapper {
-                padding: 3rem 4rem;
-            }
-        }
-
-        /* Section Header */
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        .title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--text-heading-color);
-            line-height: 1.2;
-        }
-         .title .highlight {
-            color: var(--primary-color);
-        }
-        .subtitle {
-            font-size: 1.125rem;
-            color: var(--text-body-color);
-            margin-top: 1rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.6;
-        }
-        
-        /* Custom Select Input */
-        .custom-select-wrapper {
-            position: relative;
-        }
-        .custom-select-wrapper select {
-            appearance: none; -webkit-appearance: none; -moz-appearance: none;
-        }
-        .custom-select-wrapper::after {
-            content: '▼';
-            font-size: 0.7rem;
-            color: var(--text-muted-color);
-            position: absolute;
-            right: 1.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-        
-        /* Survey Specific Styles - UX IMPROVEMENT */
-        .question-group {
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .question-group:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .question-label {
-            font-weight: 700;
-            margin-bottom: 1.25rem;
-            font-size: 1.125rem;
-            color: var(--text-heading-color);
-            display: block;
-            line-height: 1.5;
-        }
-        .likert-scale {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.5rem;
-        }
-        .likert-button {
-            padding: 0.75rem 0; 
-            border-radius: 0.75rem; border: 2px solid var(--border-color);
-            background-color: var(--surface-color); font-weight: 700; cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            color: var(--text-muted-color); font-size: 1rem; text-align: center;
-        }
-        .likert-button:hover {
-            background-color: #fff7fa;
-            border-color: #fecdd3;
-            transform: translateY(-2px);
-        }
-        .likert-button.selected {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            color: #ffffff;
-            transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 10px 20px -5px rgba(209, 58, 105, 0.3);
-        }
-        .likert-guide-container { 
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.5rem;
-            font-size: 0.8rem; 
-            color: var(--text-muted-color); 
-            margin-top: 0.75rem;
-            text-align: center;
-        }
-
-        /* Main Action Button Style */
-        .action-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--primary-color); color: white; padding: 1rem 2.5rem; border-radius: 0.75rem; font-size: 1.125rem;
-            font-weight: 700; border: none; cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(209, 58, 105, 0.2); margin-top: 2.5rem; width: 100%;
-        }
-        @media (min-width: 640px) { .action-button { width: auto; min-width: 280px; } }
-        .action-button:hover {
-            background-color: var(--primary-hover-color);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px -5px rgba(209, 58, 105, 0.4);
-        }
-        .action-button:disabled {
-            background-color: #d1d5db; color: #9ca3af;
-            cursor: not-allowed; box-shadow: none; transform: none;
-        }
-        
-        /* Modal Styles - ROOT CAUSE FIX */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(17, 24, 39, 0.6);
-            backdrop-filter: blur(4px);
-            opacity: 0; visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            overflow-y: auto;
-            padding: 2rem 1rem;
-            z-index: 50;
-            display: flex;
-            align-items: flex-start; /* Aligns modal to the top */
-        }
-        .modal-overlay.visible { opacity: 1; visibility: visible; }
-        .modal-content {
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-            width: 100%;
-            max-width: 600px;
-            padding: 2rem;
-            transform: scale(0.95);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @media(min-width: 640px){ .modal-content { padding: 2.5rem; } }
-        .modal-overlay.visible .modal-content { transform: scale(1); }
-        .modal-close-button:hover { color: var(--primary-color); transform: rotate(90deg); }
-        
-        /* Chart & Result Details Styles */
-        .result-grid {
-            display: flex;
-            flex-direction: column; /* Stacks items vertically */
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        .chart-container { width: 100%; max-width: 320px; height: 320px; margin: 0 auto; }
-        .chart-details {
-            margin-top: 0; padding-top: 0; border-top: none;
-            display: grid; grid-template-columns: 1fr; gap: 1rem;
-        }
-        @media (min-width: 500px) { .chart-details { grid-template-columns: repeat(2, 1fr); } }
-        .detail-item { font-size: 1rem; }
-        .detail-color-box { width: 1rem; height: 1rem; }
-        
-        /* Recommender Specific Styles */
-        .screen { display: none; }
-        .screen.active { display: block; animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: translateY(10px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-        
-        .custom-checkbox + label {
-            border: 2px solid var(--border-color);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-        .custom-checkbox + label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-        .custom-checkbox:checked + label {
-            border-color: var(--primary-color);
-            background-color: #fff7fa;
-            box-shadow: 0 8px 15px -5px rgba(209, 58, 105, 0.15);
-            transform: translateY(-4px);
-        }
-        .custom-checkbox:checked + label::before {
-             content: '✔';
-             position: absolute;
-             top: 0.75rem;
-             right: 0.75rem;
-             color: var(--primary-color);
-             font-weight: bold;
-             font-size: 1rem;
-        }
-
-        .progress-bar-fill { transition: width 0.5s ease-in-out; }
-        
-        .hidden { display: none !important; }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container-wrapper">
-        <!-- Part 1: Team Diagnosis Survey -->
+        <!-- 설문 조사 섹션 -->
         <div id="survey-container">
-            <!-- Start Screen -->
+            <!-- 시작 화면 -->
             <div id="startScreen" class="flex flex-col gap-8 text-center">
                 <div class="header">
-                    <h1 class="title">1단계: <span class="highlight">팀 역량</span> 진단</h1>
-                    <p class="subtitle">우리 팀의 현재 역량 수준을 정확히 파악하고<br class="sm:hidden"> 개선의 첫걸음을 시작해 보세요.</p>
+                    <h1 class="title"><span class="highlight">팀 역량</span> 진단</h1>
+                    <p class="subtitle">5분이면 끝나는 빠른 자가 진단으로<br class="sm:hidden"> 우리 팀의 현재 상태를 파악해보세요.</p>
                 </div>
                 <div class="space-y-6 text-left max-w-lg mx-auto w-full">
                     <div class="custom-select-wrapper">
@@ -275,636 +34,105 @@
                     <div class="custom-select-wrapper">
                         <label for="industry-type" class="block text-base font-semibold text-gray-800 mb-2">산업 분류</label>
                         <select id="industry-type" class="w-full p-4 text-base rounded-xl border-2 border-gray-200 bg-gray-50 focus:border-pink-500 focus:ring focus:ring-pink-200 focus:ring-opacity-50 transition ease-in-out">
-                             <option value="">소속된 기업의 산업군을 선택해 주세요</option>
-                             <option value="농업, 임업 및 어업">농업, 임업 및 어업</option>
-                             <option value="광업">광업</option>
-                             <option value="제조업">제조업</option>
-                             <option value="전기, 가스, 증기 및 공기 조절 공급업">전기, 가스, 증기 및 공기 조절 공급업</option>
-                             <option value="건설업">건설업</option>
-                             <option value="도매 및 소매업">도매 및 소매업</option>
-                             <option value="운수 및 창고업">운수 및 창고업</option>
-                             <option value="숙박 및 음식점업">숙박 및 음식점업</option>
-                             <option value="정보통신업">정보통신업</option>
-                             <option value="금융 및 보험업">금융 및 보험업</option>
-                             <option value="부동산업">부동산업</option>
-                             <option value="전문, 과학 및 기술 서비스업">전문, 과학 및 기술 서비스업</option>
-                             <option value="사업시설 관리, 사업 지원 및 임대 서비스업">사업시설 관리, 사업 지원 및 임대 서비스업</option>
-                             <option value="공공 행정, 국방 및 사회보장 행정">공공 행정, 국방 및 사회보장 행정</option>
-                             <option value="교육 서비스업">교육 서비스업</option>
-                             <option value="보건업 및 사회복지 서비스업">보건업 및 사회복지 서비스업</option>
-                             <option value="예술, 스포츠 및 여가관련 서비스업">예술, 스포츠 및 여가관련 서비스업</option>
-                             <option value="협회 및 단체, 수리 및 기타 개인 서비스업">협회 및 단체, 수리 및 기타 개인 서비스업</option>
+                            <option value="">소속된 기업의 산업군을 선택해 주세요</option>
+                            <option value="농업, 임업 및 어업">농업, 임업 및 어업</option>
+                            <option value="광업">광업</option>
+                            <option value="제조업">제조업</option>
+                            <option value="전기, 가스, 증기 및 공기 조절 공급업">전기, 가스, 증기 및 공기 조절 공급업</option>
+                            <option value="건설업">건설업</option>
+                            <option value="도매 및 소매업">도매 및 소매업</option>
+                            <option value="운수 및 창고업">운수 및 창고업</option>
+                            <option value="숙박 및 음식점업">숙박 및 음식점업</option>
+                            <option value="정보통신업">정보통신업</option>
+                            <option value="금융 및 보험업">금융 및 보험업</option>
+                            <option value="부동산업">부동산업</option>
+                            <option value="전문, 과학 및 기술 서비스업">전문, 과학 및 기술 서비스업</option>
+                            <option value="사업시설 관리, 사업 지원 및 임대 서비스업">사업시설 관리, 사업 지원 및 임대 서비스업</option>
+                            <option value="공공 행정, 국방 및 사회보장 행정">공공 행정, 국방 및 사회보장 행정</option>
+                            <option value="교육 서비스업">교육 서비스업</option>
+                            <option value="보건업 및 사회복지 서비스업">보건업 및 사회복지 서비스업</option>
+                            <option value="예술, 스포츠 및 여가관련 서비스업">예술, 스포츠 및 여가관련 서비스업</option>
+                            <option value="협회 및 단체, 수리 및 기타 개인 서비스업">협회 및 단체, 수리 및 기타 개인 서비스업</option>
                         </select>
                     </div>
                 </div>
                 <button id="startSurveyButton" class="action-button" disabled>설문 시작하기</button>
             </div>
 
-            <!-- Survey Section -->
+            <!-- 설문 화면 -->
             <div id="surveySection" class="hidden flex flex-col items-center">
                 <div class="header">
                     <h1 class="title">팀 역량 진단 설문</h1>
                     <p class="subtitle">우리 팀의 현재 상태에 대해 가장 가깝다고 생각하는 점수를 선택해주세요.</p>
                 </div>
                 <div id="input-fields" class="w-full">
-                    <!-- Input fields will be generated by JavaScript -->
+                    <!-- 질문들이 JavaScript로 동적 생성됨 -->
                 </div>
                 <button id="showResultButton" class="action-button" disabled>모든 질문에 응답해 주세요</button>
             </div>
         </div>
 
-        <!-- Part 2: Solution Recommender -->
-        <div id="recommender-container" class="hidden">
-            <!-- Progress Bar -->
-            <div id="progress-container" class="mb-10">
-                <div class="flex justify-between items-center mb-2">
-                    <span id="progress-text" class="text-base font-semibold text-pink-600">문제 진단</span>
-                    <span class="text-sm text-gray-500 font-medium"><span id="progress-step">1</span> / 1</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5">
-                    <div id="progress-bar-fill" class="bg-pink-600 h-2.5 rounded-full" style="width: 100%;"></div>
-                </div>
-            </div>
-
-            <!-- Screen 1: Problem Selection -->
-            <div id="screen-1" class="screen">
-                 <h1 class="title text-center">2단계: <span class="highlight">조직 문제점</span> 확인</h1>
-                 <p class="subtitle text-center">진단 결과에 따라 예상되는 문제점들이 자동 선택되었습니다.<br class="hidden sm:block"> 내용을 확인하고, 조직의 상황을 더 정확하게 알려주세요.</p>
-                <div id="problem-categories" class="space-y-10 mt-12">
-                    <!-- Problem categories and items will be injected here -->
-                </div>
-                <div class="mt-12 flex justify-center">
-                    <button id="show-recommendation-btn" class="action-button w-full sm:w-auto !mt-0 text-lg" disabled>맞춤 솔루션 확인하기</button>
-                </div>
-            </div>
-            
-            <!-- Screen 2: Recommendation Result -->
-            <div id="screen-2" class="screen">
-                <h1 class="title text-center">liink의 <span class="highlight">맞춤 솔루션</span> 제안</h1>
-                <p class="subtitle text-center">선택하신 문제를 해결하기 위한 최적의 프로그램을 추천해 드립니다.</p>
-                <div id="recommendation-content" class="space-y-8 mt-12">
-                    <!-- Recommendation will be injected here -->
-                </div>
-            </div>
-        </div>
     </div>
     
-    <!-- Modal: Final Result Popup -->
+    <!-- 결과 모달 -->
     <div id="resultOverlay" class="modal-overlay">
         <div id="resultContent" class="modal-content">
             <button id="resultCloseButton" class="modal-close-button absolute top-4 right-4 text-2xl transition-transform duration-300">&times;</button>
             <div class="header text-center">
                 <h2 class="title text-2xl sm:text-3xl">팀 역량 진단 결과</h2>
-                <p class="subtitle mt-2 text-base">우리 팀의 현재 역량 수준을 한눈에 확인하세요.</p>
+                <p class="subtitle mt-2 text-base">이 결과는 초기 스크리닝입니다. 더 정확한 진단과 맞춤형 전략을 위해서는 전문가 상담이 필요합니다.</p>
             </div>
             <div class="result-grid">
                 <div class="flex flex-col items-center">
                     <div class="chart-container">
                         <canvas id="radarChart"></canvas>
                     </div>
-                     <div class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-gray-600 w-full">
-                         <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>우수 (4.0 이상)</div>
-                         <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>보통 (3.0-3.9)</div>
-                         <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>개선 필요 (3.0 미만)</div>
+                    <div class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-gray-600 w-full">
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>우수 (4.0 이상)</div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>보통 (3.0-3.9)</div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>개선 필요 (3.0 미만)</div>
                     </div>
                 </div>
-                 <div class="w-full">
-                     <div class="chart-details w-full">
-                        <!-- Detail items will be populated by JS -->
+                <div class="w-full">
+                    <div class="chart-details w-full">
+                        <!-- 상세 점수들이 JavaScript로 동적 생성됨 -->
                     </div>
                     <div id="result-interpretation" class="bg-gray-50 p-6 rounded-lg border border-gray-200 w-full mt-6">
-                         <p class="text-base text-gray-500 mb-2 font-semibold">종합 진단</p>
-                         <p id="interpretation-text" class="text-lg text-gray-800 leading-relaxed"></p>
+                        <p class="text-base text-gray-500 mb-2 font-semibold">종합 진단</p>
+                        <p id="interpretation-text" class="text-lg text-gray-800 leading-relaxed"></p>
                     </div>
-                 </div>
+                </div>
             </div>
-             <div class="mt-8 flex justify-center w-full">
-                <button id="goToRecommenderButton" class="action-button !mt-0 text-base w-full max-w-xs">맞춤 솔루션 추천받기 &rarr;</button>
+            
+            <!-- 전문가 상담 CTA -->
+            <div class="mt-8 p-6 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border-2 border-pink-200">
+                <div class="text-center">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">더 정확한 진단이 필요하신가요?</h3>
+                    <p class="text-base text-gray-700 mb-4 leading-relaxed">
+                        이 결과는 초기 스크리닝입니다. 조직의 복잡성을 고려한 맞춤형 전략을 위해서는<br class="hidden sm:block">
+                        전문가와의 심층 상담이 필요합니다.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                        <a href="tel:01067029644" class="action-button !mt-0 !bg-pink-600 hover:!bg-pink-700 text-base w-full sm:w-auto sm:min-w-[200px] flex items-center justify-center whitespace-nowrap">
+                            <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span class="whitespace-nowrap">전화 상담</span>
+                            <span class="whitespace-nowrap ml-1">(010-6702-9644)</span>
+                        </a>
+                        <button id="expertConsultationButton" class="action-button !mt-0 !bg-white !text-pink-600 !border-2 !border-pink-600 hover:!bg-pink-50 text-base w-full sm:w-auto sm:min-w-[200px] whitespace-nowrap">
+                            문의하기 페이지로 이동 →
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-4">15분 무료 상담으로 더 깊이 있는 진단과 맞춤형 전략을 받아보세요.</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-center w-full">
+                <button id="closeModalButton" class="text-gray-600 hover:text-gray-800 text-base font-medium">닫기</button>
             </div>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const App = {
-                // --- CONFIGURATION & CONSTANTS ---
-                config: {
-                    googleScriptUrl: 'https://script.google.com/macros/s/AKfycbw0jcsvitbsYPQd7E4_fbBYwN-VMWodUdJZZlg8IQMIPepJsJ22bFFwRQCNKPLGLBh8/exec',
-                    surveyCategories: {
-                        "Commitment": [
-                            "나는 우리 팀의 업무 목표를 명확하게 알고 있다.", "나는 일에서 의미와 보람을 느낀다.",
-                            "우리 팀원들은 팀의 일에 헌신하고 있다.", "나는 우리 팀에 소속되어 기여하는 것에 자부심을 느낀다."
-                        ],
-                        "Communication": [
-                            "우리 팀은 자유롭게 의견을 잘 낸다.", "업무에 관한 의사 결정에 나의 의견이 반영된다.",
-                            "동료들과의 자유로운 대화 속에서 업무에 대한 영감을 얻을 때가 있다.", "우리 팀의 의사결정은 전반적으로 합리적이다."
-                        ],
-                        "Collaboration": [
-                            "나는 현재 동료들의 업무 진척현황을 구체적으로 알고 있다.", "동료들이 나의 업무에 도움을 잘 준다.",
-                            "팀 차원의 업무 지원과 협업이 잘 이루어진다."
-                        ],
-                        "Process": [
-                            "우리 팀은 체계적인 업무계획에 따라 일한다.", "나의 업무 중 모호하거나 낭비적인 요소가 거의 없다.",
-                            "우리 팀은 R&R 배분이 잘 되고 있다."
-                        ],
-                        "Trust": [
-                            "우리 팀은 환경 변화에 따라 업무 방식이나 과업의 목표를 적절히 조정한다.", "우리 팀은 이례적인 실수로 나를 저평가하지 않는다.",
-                            "우리 팀은 우려사항이나 이의를 제기하는 것에 불이익을 주지 않는다.", "나에게 권한이 잘 위임된다."
-                        ],
-                        "Growth": [
-                            "팀원들이 나의 업무개선을 위한 피드백을 제공한다.", "나는 일을 통해 꾸준히 성장하고 있다고 생각한다.",
-                            "우리 팀은 꾸준히 업무를 개선해 나간다."
-                        ],
-                        "Leadership": [
-                            "우리 팀 리더(팀장, 파트장 등)는 도전적으로 일하며 성과를 창출한다.", "우리 팀 리더(팀장, 파트장 등)는 제 때 필요한 의사결정을 적절하게 내려준다.",
-                            "우리 팀 리더(팀장, 파트장 등)는 업무 점검 회의(예: 주간업무회의)를 효과적으로 진행한다.", "우리 팀 리더(팀장, 파트장 등)는 업무지시 및 피드백이 구체적이다.",
-                            "우리 팀 리더(팀장, 파트장 등)는 중장기 관점을 가지고 체계적으로 일한다."
-                        ]
-                    },
-                    problems: {
-                        communication: [
-                            { id: 'inefficient_meetings', text: '회의가 길고 결론이 안 나요' }, { id: 'dominant_speakers', text: '회의에서 특정 사람만 말해요' },
-                            { id: 'passive_team', text: '팀원들이 소극적이고 아이디어를 내지 않아요' }, { id: 'feedback_issues', text: '보고나 피드백 방식에 문제가 있어요' }
-                        ],
-                        teamwork: [
-                            { id: 'silos', text: '부서 간 협업이 어렵고 이기주의가 있어요' }, { id: 'conflict', text: '갈등 발생 시 건강하게 해결하지 못해요' },
-                            { id: 'onboarding_issues', text: '새로운 팀원이 조직에 적응하기 힘들어해요' }, { id: 'horizontal_culture', text: '수평적인 조직문화를 만들고 싶어요' }
-                        ],
-                        leadership: [
-                            { id: 'poor_motivation', text: '리더들이 팀원들에게 동기부여를 잘 못해요' }, { id: 'bad_performance_mgmt', text: '성과관리가 공정하지 않다고 느껴져요' },
-                            { id: 'one_on_one_issues', text: '1:1 면담이 형식적이고 효과가 없어요' }, { id: 'leader_micromanagement', text: '리더가 실무에만 매몰되어 방향을 못 잡아요' }
-                        ],
-                        strategy: [
-                            { id: 'no_vision', text: '조직의 비전과 목표가 불명확해요' }, { id: 'slow_execution', text: '결정은 느리고 실행력이 떨어져요' },
-                            { id: 'new_project_direction', text: '신사업/프로젝트 방향을 정하기 어려워요' }
-                        ]
-                    },
-                    categoryNames: { communication: '회의/소통', teamwork: '팀워크/문화', leadership: '리더십/성과', strategy: '전략/방향성' },
-                    programs: {
-                         ft_foundation_3day: { title: "퍼실리테이션 파운데이션 3day", url: "https://liink.co.kr/education/facilitation.php?ptype=view&prdcode=2404020001&catcode=10000000", description: "그룹 소통의 가장 기본이 되는 필수 교육으로, 회의와 워크숍 진행의 핵심 스킬을 3일간 체계적으로 학습합니다.", case_title: "A사 '전사 회의 문화 개선' 프로젝트", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 회의는 길어지고 소수만 발언하며, 결론 없이 끝나는 경우가 많았습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 퍼실리테이션의 핵심 스킬을 체득한 후, 회의 시간이 40% 단축되고 모든 구성원이 적극적으로 아이디어를 내는 문화가 정착되었습니다." },
-                         ft_foundation_2day: { title: "퍼실리테이션 파운데이션 2day", url: "https://liink.co.kr/education/facilitation.php?ptype=view&prdcode=2404020004&catcode=10000000", description: "2일 과정으로 퍼실리테이션의 핵심 이론과 실습을 통해 회의 및 워크숍 진행 역량을 기릅니다.", case_title: "B사 '팀 리더 회의 역량' 강화", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 팀 리더들이 회의를 주재했지만, 팀원들의 침묵과 방관적인 태도로 인해 실질적인 논의가 이루어지지 않았습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 리더들이 질문, 경청, 시각화 등 퍼실리테이션 스킬을 습득하여 팀원들의 자발적인 참여를 이끌어냈습니다." },
-                         ft_foundation_1day: { title: "퍼실리테이션 파운데이션 1day", url: "https://liink.co.kr/education/facilitation.php?ptype=view&prdcode=2404020005&catcode=10000000", description: "하루 만에 퍼실리테이션의 핵심 개념을 압축적으로 배우고 싶은 분들을 위한 필수 교육입니다.", case_title: "C 스타트업 '전직원 기본기' 교육", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 자유롭게 의견을 내는 문화를 원했지만, 실제로는 비효율적인 논의만 반복되었습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 전 직원이 퍼실리테이션의 기본 원칙과 도구를 학습하여 효율적인 소통 시스템을 구축했습니다." },
-                         ft_agreement: { title: "합의의 모든 것(심화)", url: "https://liink.co.kr/education/facilitation.php?ptype=view&prdcode=2404020008&catcode=10000000", description: "의사결정이 어렵거나 갈등 상황에 놓였을 때, 모든 구성원이 동의하는 합의를 이끌어내는 심화 과정입니다.", case_title: "D사 '신규사업 TFT' 합의 워크숍", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 신규 사업 방향성을 두고 여러 부서의 이해관계가 충돌하여 몇 달째 프로젝트가 공회전하고 있었습니다.<br><strong class='text-pink-600'>[To-Be]</strong> '합의의 모든 것' 심화 과정을 통해 모든 이해관계자가 동의하는 단일안을 도출했고, 강력한 실행 동력을 확보했습니다." },
-                         socio_intro: { title: "소시오크라시 소개과정", url: "https://liink.co.kr/education/sociocrash.php?ptype=view&prdcode=2404020011&catcode=11000000", description: "자기주도적이고 수평적인 조직 운영 방식인 소시오크라시의 기본 개념과 원리를 이해하는 입문 과정입니다.", case_title: "F스타트업 '수평조직' 도입 검토", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 수평적인 조직으로의 전환을 꿈꿨지만, 어디서부터 어떻게 시작해야 할지 막막했습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 소개 과정을 통해 경영진과 리더들이 수평적 조직 운영의 구체적인 원리와 방법을 이해하게 되었습니다." },
-                         socio_vision: { title: "팀단위 비전미션 수립", url: "https://liink.co.kr/education/sociocrash.php?ptype=view&prdcode=2404020014&catcode=11000000", description: "팀의 목표와 방향성을 멤버들과 함께 명확하게 설정하고 주인의식을 고취시키는 워크숍입니다.", case_title: "I공공기관 '신설팀' 비전 워크숍", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 신설팀의 팀원들이 각자 다른 생각을 가지고 있어 팀의 정체성이 모호했습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 팀원들이 직접 참여하여 팀의 비전과 미션을 함께 수립하는 과정을 통해 강력한 소속감과 주인의식을 갖게 되었습니다." },
-                         socio_decision: { title: "동의 의사결정과 회의 체계", url: "https://liink.co.kr/education/sociocrash.php?ptype=view&prdcode=2404020015&catcode=11000000", description: "만장일치가 아닌 '동의'기반의 빠르고 효과적인 의사결정 방법과 회의 체계를 학습합니다.", case_title: "G IT기업 '개발팀' 회의 방식 개선", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 개발팀의 기술 회의가 끝없는 논쟁으로 이어져 의사결정이 계속 지연되었습니다.<br><strong class='text-pink-600'>[To-Be]</strong> '동의' 기반 의사결정 방식을 도입한 후, 회의 속도가 2배 이상 빨라지고 개발 일정 준수율이 크게 향상되었습니다." },
-                         socio_feedback: { title: "동료 피드백 제대로 하기", url: "https://liink.co.kr/education/sociocrash.php?ptype=view&prdcode=2404020016&catcode=11000000", description: "서로의 성장을 돕는 건강한 피드백 문화를 조직에 정착시키는 구체적인 방법을 배웁니다.", case_title: "H디자인 에이전시 '피드백 문화' 구축", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 동료 간 피드백이 없거나, 형식적인 칭찬에 그쳐 성장에 도움이 되지 않았습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 구체적인 피드백 스킬을 학습하여, 서로의 성과와 발전에 기여하는 건강한 피드백 문화를 구축했습니다." },
-                         leader_orgdev: { title: "팀장의 조직개발 리더십", url: "https://liink.co.kr/education/leadership.php?ptype=view&prdcode=2404020019&catcode=12000000", description: "팀의 잠재력을 파악하고 성과를 창출하는 조직개발 관점의 리더십 스킬을 학습합니다.", case_title: "J 대기업 '신임팀장' 리더십 교육", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 신임 팀장들이 팀원 관리에 어려움을 느끼고 실무에만 매몰되었습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 팀을 하나의 '조직'으로 보고 진단하고 개발하는 관점을 학습한 후, 팀의 몰입도와 성과를 모두 향상시켰습니다." },
-                         leader_perf: { title: "성장중심 성과관리 리더십", url: "https://liink.co.kr/education/leadership.php?ptype=view&prdcode=2404020020&catcode=12000000", description: "일방적 평가를 넘어, 구성원의 성장을 지원하고 동기를 부여하는 성과관리 방법을 배웁니다.", case_title: "K 게임회사 '리더십' 코칭 프로그램", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 연말 성과평가가 형식적인 절차로 전락했고, 핵심 인재들의 불만이 높았습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 상시적인 성과관리 방식으로 전환하여, 자발적인 동기부여를 이끌어내고 핵심 인재의 이탈률을 낮췄습니다." },
-                         leader_oneonone: { title: "원온원 리더십", url: "https://liink.co.kr/education/leadership.php?ptype=view&prdcode=2404020021&catcode=12000000", description: "구성원과 신뢰를 쌓고 성장을 지원하는 1:1 미팅의 구체적인 스킬과 노하우를 학습합니다.", case_title: "L 스타트업 '리더 그룹' 원온원 스킬 강화", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 1:1 면담이 업무 현황 체크에 그치는 등 형식적으로 운영되었습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 구체적인 스킬과 질문법을 학습하여, 팀원들의 숨은 고민을 해결하고 잠재력을 이끌어내는 시간으로 만들었습니다."},
-                         leader_conflict: { title: "갈등관리 리더십", url: "https://liink.co.kr/education/leadership.php?ptype=view&prdcode=2404020022&catcode=12000000", description: "팀 내외부의 갈등 상황을 지혜롭게 해결하고 건설적인 관계로 전환하는 방법을 배웁니다.", case_title: "M 제조기업 '생산-영업' 갈등 중재", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 생산 부서와 영업 부서 간의 해묵은 갈등으로 인해 프로젝트 진행이 비효율적이었습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 리더들이 갈등의 근본 원인을 진단하고 해결 방안을 모색하여, 갈등을 '성장의 기회'로 전환했습니다." },
-                         default: { title: "팀 시너지 워크숍", url: "https://liink.co.kr/education/leadership.php", description: "팀의 소통과 협업에 문제가 있을 때, 신뢰를 바탕으로 팀워크를 강화하고 공동의 목표를 향해 나아가는 워크숍입니다.", case_title: "O사 '신규팀 빌딩' 워크숍", case_content: "<strong class='text-gray-500'>[As-Is]</strong> 신규 TF팀이 서먹한 분위기 속에서 소통이 단절되고 시너지가 나지 않았습니다.<br><strong class='text-pink-600'>[To-Be]</strong> 워크숍을 통해 서로의 강점과 업무 스타일을 이해하고 신뢰를 구축하여, 단기간 내에 강력한 원팀(One-Team)으로 거듭났습니다." }
-                    },
-                    recommendationLogic: {
-                        inefficient_meetings: { ft_foundation_1day: 4, ft_foundation_2day: 3, socio_decision: 2 }, dominant_speakers: { ft_foundation_2day: 3, leader_orgdev: 2 },
-                        passive_team: { ft_foundation_3day: 4, leader_oneonone: 3, leader_orgdev: 2 }, feedback_issues: { socio_feedback: 4, leader_oneonone: 3 },
-                        silos: { leader_orgdev: 3, leader_conflict: 2, ft_agreement: 2 }, conflict: { leader_conflict: 4, ft_agreement: 2 },
-                        onboarding_issues: { leader_orgdev: 3, default: 2 }, horizontal_culture: { socio_intro: 4, leader_orgdev: 3 },
-                        poor_motivation: { leader_orgdev: 4, leader_perf: 3, leader_oneonone: 3 }, bad_performance_mgmt: { leader_perf: 4, leader_oneonone: 2 },
-                        one_on_one_issues: { leader_oneonone: 4, socio_feedback: 2 }, leader_micromanagement: { leader_orgdev: 3 },
-                        no_vision: { socio_vision: 4, default: 2 }, slow_execution: { socio_decision: 4, ft_agreement: 2 },
-                        new_project_direction: { socio_vision: 3, ft_agreement: 2 }
-                    },
-                    surveyToProblemMap: {
-                        Commitment: ['no_vision', 'poor_motivation'], Communication: ['inefficient_meetings', 'dominant_speakers', 'passive_team'],
-                        Collaboration: ['silos', 'conflict'], Process: ['slow_execution', 'bad_performance_mgmt', 'leader_micromanagement'],
-                        Trust: ['conflict', 'feedback_issues', 'horizontal_culture', 'leader_micromanagement', 'one_on_one_issues'],
-                        Growth: ['poor_motivation', 'one_on_one_issues', 'socio_feedback'], Leadership: ['poor_motivation', 'bad_performance_mgmt', 'one_on_one_issues', 'leader_micromanagement']
-                    }
-                },
-
-                // --- APPLICATION STATE ---
-                state: {
-                    questionScores: {},
-                    finalResults: {},
-                    myRadarChart: null,
-                    currentScreen: 'screen-1',
-                },
-
-                // --- DOM ELEMENTS CACHE ---
-                elements: {},
-
-                // --- INITIALIZATION ---
-                init() {
-                    this.cacheDomElements();
-                    this.bindEvents();
-                    this.render.surveyQuestions();
-                    this.render.problemCheckboxes();
-                    this.utils.updateProgressBar(1);
-                },
-
-                cacheDomElements() {
-                    this.elements = {
-                        surveyContainer: document.getElementById('survey-container'),
-                        recommenderContainer: document.getElementById('recommender-container'),
-                        startScreen: document.getElementById('startScreen'),
-                        surveySection: document.getElementById('surveySection'),
-                        companySizeSelect: document.getElementById('company-size'),
-                        industryTypeSelect: document.getElementById('industry-type'),
-                        startSurveyButton: document.getElementById('startSurveyButton'),
-                        inputFieldsContainer: document.getElementById('input-fields'),
-                        showResultButton: document.getElementById('showResultButton'),
-                        resultOverlay: document.getElementById('resultOverlay'),
-                        resultCloseButton: document.getElementById('resultCloseButton'),
-                        goToRecommenderButton: document.getElementById('goToRecommenderButton'),
-                        interpretationText: document.getElementById('interpretation-text'),
-                        chartDetailsContainer: document.querySelector('.chart-details'),
-                        radarCanvas: document.getElementById('radarChart'),
-                        problemCategoriesContainer: document.getElementById('problem-categories'),
-                        showRecommendationBtn: document.getElementById('show-recommendation-btn'),
-                        recommendationContent: document.getElementById('recommendation-content'),
-                        progressContainer: document.getElementById('progress-container'),
-                    };
-                },
-
-                bindEvents() {
-                    this.elements.companySizeSelect.addEventListener('change', this.handlers.onStartConditionChange.bind(this));
-                    this.elements.industryTypeSelect.addEventListener('change', this.handlers.onStartConditionChange.bind(this));
-                    this.elements.startSurveyButton.addEventListener('click', this.handlers.onStartSurvey.bind(this));
-                    this.elements.inputFieldsContainer.addEventListener('click', this.handlers.onLikertClick.bind(this));
-                    this.elements.showResultButton.addEventListener('click', this.handlers.onShowResult.bind(this));
-                    this.elements.resultCloseButton.addEventListener('click', () => this.utils.toggleModal(false));
-                    this.elements.goToRecommenderButton.addEventListener('click', this.handlers.onGoToRecommender.bind(this));
-                    
-                    this.elements.problemCategoriesContainer.addEventListener('change', this.handlers.onProblemSelectionChange.bind(this));
-
-                    this.elements.showRecommendationBtn.addEventListener('click', this.handlers.onShowRecommendation.bind(this));
-                },
-
-                // --- EVENT HANDLERS ---
-                handlers: {
-                    onStartConditionChange() {
-                        const { companySizeSelect, industryTypeSelect, startSurveyButton } = this.elements;
-                        startSurveyButton.disabled = !(companySizeSelect.value && industryTypeSelect.value);
-                    },
-
-                    onStartSurvey() {
-                        this.elements.startScreen.classList.add('hidden');
-                        this.elements.surveySection.classList.remove('hidden');
-                        this.elements.surveySection.classList.add('flex');
-                    },
-
-                    onLikertClick(e) {
-                        if (e.target.classList.contains('likert-button')) {
-                            const { questionId, value } = e.target.dataset;
-                            Array.from(e.target.parentNode.children).forEach(btn => btn.classList.remove('selected'));
-                            e.target.classList.add('selected');
-                            this.state.questionScores[questionId] = parseInt(value, 10);
-                            this.utils.updateSurveyButtonState();
-                        }
-                    },
-
-                    async onShowResult() {
-                        if (!this.utils.allQuestionsAnswered()) return;
-
-                        const button = this.elements.showResultButton;
-                        const originalButtonText = button.innerHTML;
-
-                        try {
-                            button.disabled = true;
-                            button.innerHTML = `
-                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                분석 중...
-                            `;
-                            
-                            this.state.finalResults = {
-                                companySize: this.elements.companySizeSelect.value,
-                                industryType: this.elements.industryTypeSelect.value,
-                                averageScores: this.utils.calculateAverages(),
-                            };
-                            
-                            const analyticsData = {
-                                createdAt: new Date().toISOString(),
-                                companySize: this.state.finalResults.companySize,
-                                industryType: this.state.finalResults.industryType,
-                            };
-                            for (const [key, value] of Object.entries(this.state.finalResults.averageScores)) {
-                                analyticsData[key] = value;
-                            }
-                            
-                            await this.utils.saveSurveyData(analyticsData, 'surveyAnalytics');
-
-                            this.render.resultChart(this.state.finalResults.averageScores);
-                            this.elements.interpretationText.innerHTML = this.utils.getRecommendationReason(this.state.finalResults.averageScores);
-                            this.utils.toggleModal(true);
-
-                        } catch (error) {
-                            console.error("Error in onShowResult:", error);
-                        } finally {
-                            // Always restore button after attempt
-                             button.disabled = false;
-                             button.innerHTML = originalButtonText;
-                        }
-                    },
-                    
-                    onGoToRecommender() {
-                        this.utils.toggleModal(false);
-                        this.elements.surveyContainer.classList.add('hidden');
-                        this.elements.recommenderContainer.classList.remove('hidden');
-                        this.utils.showScreen('screen-1', 1);
-                        this.utils.preselectProblemsBasedOnSurvey(this.state.finalResults.averageScores);
-                    },
-
-                    onProblemSelectionChange() {
-                        const anyChecked = Array.from(this.elements.problemCategoriesContainer.querySelectorAll('input[name="problems"]')).some(c => c.checked);
-                        this.elements.showRecommendationBtn.disabled = !anyChecked;
-                    },
-
-                    onShowRecommendation() {
-                        this.render.recommendations();
-                        this.utils.showScreen('screen-2', 2);
-                    },
-                },
-
-                // --- RENDER FUNCTIONS ---
-                render: {
-                    surveyQuestions() {
-                        let questionCounter = 1;
-                        const fragment = document.createDocumentFragment();
-                        Object.entries(App.config.surveyCategories).forEach(([category, questions]) => {
-                            questions.forEach((question, index) => {
-                                const questionId = `${category}-${index}`;
-                                App.state.questionScores[questionId] = 0;
-                                const questionGroup = document.createElement('div');
-                                questionGroup.className = 'question-group';
-                                questionGroup.innerHTML = `
-                                    <label class="question-label">${questionCounter}. ${question}</label>
-                                    <div class="flex flex-col">
-                                        <div class="likert-scale w-full">
-                                            ${[1, 2, 3, 4, 5].map(i => `<button class="likert-button" data-question-id="${questionId}" data-value="${i}">${i}</button>`).join('')}
-                                        </div>
-                                        <div class="likert-guide-container w-full">
-                                            ${["매우 그렇지 않다", "그렇지 않다", "보통이다", "그렇다", "매우 그렇다"].map(label => `<div class="likert-guide">${label}</div>`).join('')}
-                                        </div>
-                                    </div>`;
-                                fragment.appendChild(questionGroup);
-                                questionCounter++;
-                            });
-                        });
-                        App.elements.inputFieldsContainer.appendChild(fragment);
-                    },
-                    
-                    problemCheckboxes() {
-                        const html = Object.entries(App.config.problems).map(([categoryKey, problems]) => `
-                            <div>
-                                <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-100">${App.config.categoryNames[categoryKey]}</h2>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    ${problems.map(problem => `
-                                        <div>
-                                            <input type="checkbox" id="problem-${problem.id}" name="problems" value="${problem.id}" class="hidden custom-checkbox">
-                                            <label for="problem-${problem.id}" class="flex items-center text-center justify-center min-h-[80px] p-4 rounded-xl cursor-pointer">
-                                                <span class="font-semibold text-gray-700 text-base">${problem.text}</span>
-                                            </label>
-                                        </div>`).join('')}
-                                </div>
-                            </div>`).join('');
-                        App.elements.problemCategoriesContainer.innerHTML = html;
-                    },
-
-                    resultChart(scores) {
-                        if (App.state.myRadarChart) App.state.myRadarChart.destroy();
-                        const detailsHtml = Object.keys(scores).map(label => {
-                            const score = scores[label];
-                            const color = score < 3.0 ? 'bg-red-500' : (score >= 4.0 ? 'bg-green-500' : 'bg-yellow-500');
-                            return `
-                                <div class="detail-item flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <div class="flex items-center">
-                                        <div class="detail-color-box w-4 h-4 rounded-md ${color} mr-3"></div>
-                                        <span class="font-bold text-gray-700">${label}:</span>
-                                    </div>
-                                    <span class="font-bold text-lg text-gray-800">${score.toFixed(1)}</span>
-                                </div>`;
-                        }).join('');
-                        App.elements.chartDetailsContainer.innerHTML = detailsHtml;
-
-                        App.state.myRadarChart = new Chart(App.elements.radarCanvas, {
-                            type: 'radar',
-                            data: {
-                                labels: Object.keys(scores),
-                                datasets: [{
-                                    label: 'Team Performance', data: Object.values(scores), fill: true,
-                                    backgroundColor: 'rgba(209, 58, 105, 0.2)',
-                                    borderColor: 'rgba(209, 58, 105, 1)',
-                                    pointBackgroundColor: 'rgba(209, 58, 105, 1)',
-                                    pointBorderColor: '#fff',
-                                    pointHoverBackgroundColor: '#fff',
-                                    pointHoverBorderColor: 'rgba(209, 58, 105, 1)'
-                                }]
-                            },
-                            options: {
-                                layout: {
-                                    padding: 15 // Prevents labels from being cut off
-                                },
-                                maintainAspectRatio: false,
-                                elements: { line: { borderWidth: 2.5, tension: 0.2 } },
-                                scales: {
-                                    r: {
-                                        angleLines: { color: 'rgba(0, 0, 0, 0.15)' },
-                                        grid: { color: 'rgba(0, 0, 0, 0.15)' },
-                                        pointLabels: {
-                                            color: '#374151',
-                                            font: { size: 14, weight: '700', family: "'Pretendard'" }
-                                        },
-                                        min: 0, max: 5,
-                                        ticks: {
-                                            stepSize: 1,
-                                            backdropColor: 'transparent',
-                                            color: '#6b7280',
-                                            font: { size: 12 }
-                                        }
-                                    }
-                                },
-                                plugins: { legend: { display: false } }
-                            }
-                        });
-                    },
-                    
-                    recommendations() {
-                        const selected = App.utils.getSelectedProblems();
-                        const recommendedKeys = App.utils.getRecommendations(selected);
-                        const reason = App.utils.getRecommendationReason(App.state.finalResults.averageScores, true);
-                        const recommendationHtml = recommendedKeys.map((key, index) => {
-                            const program = App.config.programs[key];
-                            const isPrimary = index === 0;
-                            return `
-                                <div class="flex flex-col group">
-                                    ${isPrimary ? `<p class="text-sm text-white bg-pink-600 mb-2 font-bold tracking-wider uppercase rounded-full px-3 py-1 self-start">Best Match</p>` : `<p class="text-sm text-gray-500 mb-2 font-semibold tracking-wider">추가 추천</p>`}
-                                    <div class="bg-white p-6 rounded-xl border-2 ${isPrimary ? 'border-pink-500' : 'border-gray-200'} flex-1 flex flex-col justify-between shadow-sm transition-all duration-300 group-hover:shadow-xl group-hover:border-pink-500">
-                                        <div>
-                                            <h2 class="text-2xl font-bold ${isPrimary ? 'text-pink-600' : 'text-gray-800'} mb-3">${program.title}</h2>
-                                            <p class="text-base text-gray-600 mb-5 leading-relaxed">${program.description}</p>
-                                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                                <h3 class="text-base font-bold text-gray-800 mb-2">${program.case_title}</h3>
-                                                <p class="text-sm text-gray-700 leading-relaxed">${program.case_content}</p>
-                                            </div>
-                                        </div>
-                                        <a href="${program.url}" target="_blank" class="mt-6 inline-block ${isPrimary ? 'bg-pink-600 text-white hover:bg-pink-700' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'} font-bold py-3 px-5 rounded-lg transition text-base text-center">프로그램 상세 보기 &rarr;</a>
-                                    </div>
-                                </div>`;
-                        }).join('');
-                        App.elements.recommendationContent.innerHTML = `
-                            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                                <p class="text-base text-gray-500 mb-2 font-semibold">핵심 문제 진단</p>
-                                <p class="text-lg text-gray-800 leading-relaxed">${reason}</p>
-                            </div>
-                            <div class="grid md:grid-cols-${recommendedKeys.length === 1 ? '1' : '2'} gap-8">
-                                ${recommendationHtml}
-                            </div>`;
-                    }
-                },
-
-                // --- UTILITY & LOGIC FUNCTIONS ---
-                utils: {
-                    allQuestionsAnswered: () => Object.values(App.state.questionScores).every(score => score > 0),
-
-                    updateSurveyButtonState() {
-                        if (this.allQuestionsAnswered()) {
-                            App.elements.showResultButton.disabled = false;
-                            App.elements.showResultButton.textContent = "결과 분석하기";
-                        }
-                    },
-                    
-                    calculateAverages() {
-                        const averageScores = {};
-                        Object.keys(App.config.surveyCategories).forEach(label => {
-                            const questions = App.config.surveyCategories[label];
-                            let sum = 0, count = 0;
-                            questions.forEach((q, index) => {
-                                const score = App.state.questionScores[`${label}-${index}`];
-                                if (score > 0) { sum += score; count++; }
-                            });
-                            averageScores[label] = count > 0 ? parseFloat((sum / count).toFixed(1)) : 0;
-                        });
-                        const rrScore = App.state.questionScores['Process-2'] || 0;
-                        const delegationScore = App.state.questionScores['Trust-3'] || 0;
-                        const leadershipScores = Object.entries(App.state.questionScores).filter(([k]) => k.startsWith('Leadership'));
-                        const adjustedLeadershipSum = leadershipScores.reduce((acc, [, v]) => acc + v, 0) + rrScore + delegationScore;
-                        const adjustedLeadershipCount = leadershipScores.length + (rrScore > 0 ? 1 : 0) + (delegationScore > 0 ? 1 : 0);
-                        if (adjustedLeadershipCount > 0) {
-                             averageScores['Leadership'] = parseFloat((adjustedLeadershipSum / adjustedLeadershipCount).toFixed(1));
-                        }
-                        return averageScores;
-                    },
-
-                    toggleModal: (visible) => App.elements.resultOverlay.classList.toggle('visible', visible),
-                    
-                    showScreen(screenId, step = null) {
-                        document.getElementById(App.state.currentScreen)?.classList.remove('active');
-                        document.getElementById(screenId).classList.add('active');
-                        App.state.currentScreen = screenId;
-                        App.elements.progressContainer.style.display = ['screen-3', 'screen-4'].includes(screenId) ? 'none' : 'block';
-                        if (step) this.updateProgressBar(step);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    },
-                    
-                    updateProgressBar(step) {
-                        const fill = document.getElementById('progress-bar-fill');
-                        const text = document.getElementById('progress-text');
-                        const stepEl = document.getElementById('progress-step');
-                        stepEl.textContent = step;
-                        fill.style.width = `${(step / 2) * 100}%`;
-                        text.textContent = ['문제점 확인', '솔루션 제안'][step - 1];
-                    },
-
-                    preselectProblemsBasedOnSurvey(scores) {
-                        const problemsToSelect = new Set();
-                        Object.entries(scores).forEach(([category, score]) => {
-                            if (score < 3.0) {
-                                (App.config.surveyToProblemMap[category] || []).forEach(problemId => problemsToSelect.add(problemId));
-                            }
-                        });
-                        App.elements.problemCategoriesContainer.querySelectorAll('input[name="problems"]').forEach(cb => {
-                            cb.checked = problemsToSelect.has(cb.value);
-                        });
-                        App.elements.showRecommendationBtn.disabled = problemsToSelect.size === 0;
-                    },
-
-                    getSelectedProblems: () => Array.from(App.elements.problemCategoriesContainer.querySelectorAll('input[name="problems"]:checked')).map(cb => cb.value),
-                    
-                    async saveSurveyData(data, sheetName) {
-                        const GOOGLE_SCRIPT_URL = App.config.googleScriptUrl;
-                        if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-                            console.warn("Google Apps Script URL is not set. Data will not be saved to Google Sheets.");
-                            return `local-${Date.now()}`;
-                        }
-                        
-                        const payload = { ...data, sheetName: sheetName };
-
-                        try {
-                           const response = await fetch(GOOGLE_SCRIPT_URL, {
-                                method: 'POST',
-                                redirect: "follow",
-                                headers: { "Content-Type": "text/plain;charset=UTF-8" },
-                                body: JSON.stringify(payload)
-                            });
-
-                            if (!response.ok && response.type !== 'opaque') { 
-                                throw new Error(`Network response was not ok. Status: ${response.status}`);
-                            }
-                           
-                            if (response.type === 'opaque') {
-                                console.log(`Data sent to Google Sheet '${sheetName}' (opaque response).`);
-                                return `g-sheet-${Date.now()}`;
-                            }
-
-                            const result = await response.json();
-
-                            if (result.status === "success") {
-                                console.log(`Data successfully saved to Google Sheet '${sheetName}'.`);
-                                return `g-sheet-${Date.now()}`;
-                            } else {
-                                throw new Error(result.message);
-                            }
-                        } catch (e) {
-                            console.error(`Error sending data to Google Sheet '${sheetName}': `, e.message);
-                            alert(`Google Sheet 저장 오류: ${e.message}\n\n[문제 해결 가이드]\n1. Google Sheet의 시트 이름과 헤더가 안내서와 정확히 일치하는지 확인하세요.\n2. Apps Script를 수정한 경우, 반드시 '배포 관리 > 새 버전'으로 다시 배포했는지 확인하세요.\n3. Apps Script 배포 시 '액세스 권한'이 '모든 사용자'로 설정되었는지 확인하세요.`);
-                            throw e; // Re-throw error to be caught by caller
-                        }
-                    },
-
-                    getRecommendations(selectedProblems) {
-                        const scores = {};
-                        selectedProblems.forEach(problemId => {
-                            const rules = App.config.recommendationLogic[problemId];
-                            if (rules) {
-                                for (const [programKey, score] of Object.entries(rules)) {
-                                    scores[programKey] = (scores[programKey] || 0) + score;
-                                }
-                            }
-                        });
-                        if (scores.ft_foundation_1day || scores.ft_foundation_2day || scores.ft_foundation_3day) {
-                             if (selectedProblems.length === 1 && selectedProblems.includes('inefficient_meetings')) {
-                                 delete scores.ft_foundation_2day; delete scores.ft_foundation_3day;
-                            } else if(selectedProblems.length >= 2 && (selectedProblems.includes('inefficient_meetings') || selectedProblems.includes('passive_team') || selectedproblems.includes('dominant_speakers'))) {
-                                delete scores.ft_foundation_1day;
-                            }
-                        }
-                        const sortedPrograms = Object.entries(scores).sort(([, scoreA], [, scoreB]) => scoreB - scoreA);
-                        let recommendations = sortedPrograms.slice(0, 2).map(([key]) => key);
-                        recommendations = [...new Set(recommendations)];
-                        return recommendations.length === 0 ? ['default'] : recommendations;
-                    },
-
-                    getRecommendationReason(scores, isFinal = false) {
-                        const lowScoreCategories = Object.entries(scores).filter(([, score]) => score < 3.0).map(([category]) => category);
-                        let insights = [];
-                        if (lowScoreCategories.includes('Leadership')) insights.push("팀의 성과를 창출하고 구성원의 성장을 이끌어내는 <strong class='text-gray-900'>'리더십 역량'</strong>에 대한 점검이 필요해 보입니다.");
-                        if (lowScoreCategories.includes('Communication') || lowScoreCategories.includes('Collaboration')) insights.push("팀원들 간의 <strong class='text-gray-900'>'소통과 협업'</strong> 방식에 개선이 필요해 보입니다.");
-                        if (lowScoreCategories.includes('Trust')) insights.push("실패에 대한 두려움 없이 솔직한 의견을 나눌 수 있는 <strong class='text-gray-900'>'심리적 안정감'</strong> 조성이 시급합니다.");
-                        if (lowScoreCategories.includes('Growth') || lowScoreCategories.includes('Commitment')) insights.push("구성원들의 <strong class='text-gray-900'>'성장과 동기부여'</strong>를 위한 명확한 목표 공유가 중요합니다.");
-                        if (lowScoreCategories.includes('Process')) insights.push("명확한 역할과 책임(R&R) 설정과 효율적인 <strong class='text-gray-900'>'업무 프로세스'</strong> 정립이 필요합니다.");
-                        if (insights.length === 0) return "팀의 전반적인 역량이 안정적입니다. 현재 상태를 유지하고 더욱 발전시키기 위한 방안을 모색해볼 수 있습니다.";
-                        if (isFinal) return `진단 결과, ${insights.join(" 또한, ")} 이러한 문제들을 해결하기 위한 최적의 솔루션들을 아래에 제안합니다.`;
-                        return insights.join(" ");
-                    }
-                }
-            };
-            App.init();
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
-
