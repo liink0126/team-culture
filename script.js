@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ============================================
         config: {
             googleScriptUrl: 'https://script.google.com/macros/s/AKfycbweAfOcmGi-HtO-6xMSY3aPZPbMbxfIrdTpMdM-UdfIjS6iddVeUYhjaNvIaDRkbQxu/exec',
-            expertConsultationUrl: 'https://liink.co.kr/consultation', // 전문가 상담 신청 페이지 URL (필요시 변경)
+            expertConsultationUrl: 'http://pf.kakao.com/_IakxkG/chat', // 카카오톡 상담 채팅 URL
             
             // 설문 카테고리 및 질문
             surveyCategories: {
@@ -217,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultOverlay: document.getElementById('resultOverlay'),
                 resultCloseButton: document.getElementById('resultCloseButton'),
                 closeModalButton: document.getElementById('closeModalButton'),
-                expertConsultationButton: document.getElementById('expertConsultationButton'),
                 interpretationText: document.getElementById('interpretation-text'),
                 chartDetailsContainer: document.querySelector('.chart-details'),
                 radarCanvas: document.getElementById('radarChart')
@@ -232,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
             this.elements.showResultButton.addEventListener('click', () => this.handlers.onShowResult());
             this.elements.resultCloseButton.addEventListener('click', () => this.utils.toggleModal(false));
             this.elements.closeModalButton.addEventListener('click', () => this.utils.toggleModal(false));
-            this.elements.expertConsultationButton.addEventListener('click', () => this.handlers.onExpertConsultation());
         },
 
         // ============================================
